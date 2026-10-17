@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/program.dart';
 import '../providers/program_provider.dart';
 import '../utils/theme.dart';
+import 'registration_confirmation_screen.dart';
 
 class ProgramDetailsScreen extends StatelessWidget {
   final Program program;
@@ -117,19 +118,11 @@ class ProgramDetailsScreen extends StatelessWidget {
                 ? null
                 : () {
                     provider.register(program);
-                    showDialog(
-                      context: context,
-                      builder: (ctx) => AlertDialog(
-                        icon: const Icon(Icons.check_circle,
-                            color: AppColors.teal, size: 48),
-                        title: const Text('Registration confirmed'),
-                        content: Text(
-                            "You're registered for ${program.title} on ${program.date}."),
-                        actions: [
-                          TextButton(
-                              onPressed: () => Navigator.pop(ctx),
-                              child: const Text('Done')),
-                        ],
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            RegistrationConfirmationScreen(program: program),
                       ),
                     );
                   },

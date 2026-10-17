@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
   static const indigo = Color(0xFF4F46E5);
@@ -10,8 +11,10 @@ class AppColors {
   static const border = Color(0xFFE5E7EB);
 }
 
-ThemeData buildTheme() {
-  return ThemeData(
+/// App-wide theme. Font: Inter (matches the CampusFlow design system).
+/// [useGoogleFonts] is false only in automated tests (no network access).
+ThemeData buildTheme({bool useGoogleFonts = true}) {
+  final base = ThemeData(
     useMaterial3: true,
     colorScheme: ColorScheme.fromSeed(seedColor: AppColors.indigo),
     scaffoldBackgroundColor: AppColors.background,
@@ -43,4 +46,7 @@ ThemeData buildTheme() {
       ),
     ),
   );
+
+  if (!useGoogleFonts) return base;
+  return base.copyWith(textTheme: GoogleFonts.interTextTheme(base.textTheme));
 }

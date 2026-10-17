@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../providers/program_provider.dart';
 import '../utils/theme.dart';
 import '../widgets/program_card.dart';
+import 'notifications_screen.dart';
 import 'program_details_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -26,26 +27,36 @@ class HomeScreen extends StatelessWidget {
         title: const Text('CampusFlow',
             style: TextStyle(fontWeight: FontWeight.w800)),
         actions: [
-          IconButton(icon: const Icon(Icons.search), onPressed: () {}),
+          IconButton(icon: const Icon(Icons.search), onPressed: onSeeAll),
           Stack(
             alignment: Alignment.center,
             children: [
               IconButton(
-                  icon: const Icon(Icons.notifications_outlined),
-                  onPressed: () {}),
-              Positioned(
-                right: 10,
-                top: 10,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(
-                      color: AppColors.indigo, shape: BoxShape.circle),
-                  child: const Text('3',
-                      style: TextStyle(color: Colors.white, fontSize: 9)),
+                icon: const Icon(Icons.notifications_outlined),
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const NotificationsScreen()),
                 ),
               ),
+              if (provider.unreadCount > 0)
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: IgnorePointer(
+                    child: Container(
+                      padding: const EdgeInsets.all(5),
+                      decoration: const BoxDecoration(
+                          color: AppColors.indigo, shape: BoxShape.circle),
+                      child: Text('${provider.unreadCount}',
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 9)),
+                    ),
+                  ),
+                ),
             ],
           ),
+          const SizedBox(width: 4),
         ],
       ),
       body: ListView(

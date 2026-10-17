@@ -22,7 +22,7 @@ class CampusFlowApp extends StatelessWidget {
     return MaterialApp(
       title: 'CampusFlow',
       debugShowCheckedModeBanner: false,
-      theme: buildTheme(),
+      theme: buildTheme(useGoogleFonts: true),
       home: const LoginScreen(),
     );
   }
