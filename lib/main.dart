@@ -9,20 +9,21 @@ void main() {
   runApp(
     ChangeNotifierProvider(
       create: (_) => ProgramProvider(),
-      child: const CampusFlowApp(),
+      child: const CampusFlowApp(useGoogleFonts: true),
     ),
   );
 }
 
 class CampusFlowApp extends StatelessWidget {
-  const CampusFlowApp({super.key});
+  final bool useGoogleFonts;
+  const CampusFlowApp({super.key, required this.useGoogleFonts  });
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'CampusFlow',
       debugShowCheckedModeBanner: false,
-      theme: buildTheme(useGoogleFonts: true),
+      theme: buildTheme(useGoogleFonts: useGoogleFonts),
       home: const LoginScreen(),
     );
   }
