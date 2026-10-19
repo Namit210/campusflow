@@ -40,9 +40,11 @@ class _SignupScreenState extends State<SignupScreen> {
       appBar: AppBar(title: const Text('Sign up')),
       body: SafeArea(
         child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Form(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 460),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              child: Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -146,6 +148,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     child: const Text('Already have an account? Log in'),
                   ),
                 ],
+                ),
               ),
             ),
           ),

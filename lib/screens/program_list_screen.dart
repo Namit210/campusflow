@@ -16,19 +16,25 @@ class ProgramListScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Programs',
-            style: TextStyle(fontWeight: FontWeight.w800)),
+        title: const Text(
+          'Programs',
+          style: TextStyle(fontWeight: FontWeight.w800),
+        ),
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-            child: TextField(
-              onChanged: provider.setQuery,
-              decoration: const InputDecoration(
-                hintText: 'Search programs...',
-                prefixIcon: Icon(Icons.search),
-                contentPadding: EdgeInsets.symmetric(vertical: 0),
+          Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 760),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                child: TextField(
+                  onChanged: provider.setQuery,
+                  decoration: const InputDecoration(
+                    hintText: 'Search programs...',
+                    prefixIcon: Icon(Icons.search),
+                  ),
+                ),
               ),
             ),
           ),
@@ -47,7 +53,8 @@ class ProgramListScreen extends StatelessWidget {
                   selected: selected,
                   selectedColor: AppColors.indigo,
                   labelStyle: TextStyle(
-                      color: selected ? Colors.white : AppColors.navy),
+                    color: selected ? Colors.white : AppColors.navy,
+                  ),
                   showCheckmark: false,
                   onSelected: (_) => provider.setCategory(c),
                 );
@@ -58,21 +65,31 @@ class ProgramListScreen extends StatelessWidget {
           Expanded(
             child: programs.isEmpty
                 ? const Center(
-                    child: Text('No programs found',
-                        style: TextStyle(color: AppColors.muted)))
+                    child: Text(
+                      'No programs found',
+                      style: TextStyle(color: AppColors.muted),
+                    ),
+                  )
                 : ListView.builder(
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                     itemCount: programs.length,
-                    itemBuilder: (context, i) => ProgramCard(
-                      program: programs[i],
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              ProgramDetailsScreen(program: programs[i]),
+                    itemBuilder: (context, i) {
+                      return Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 760),
+                          child: ProgramCard(
+                            program: programs[i],
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    ProgramDetailsScreen(program: programs[i]),
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
+                      );
+                    },
                   ),
           ),
         ],

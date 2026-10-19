@@ -61,9 +61,14 @@ class ProgramDetailsScreen extends StatelessWidget {
             ),
           ),
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 110),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 110),
+            sliver: SliverToBoxAdapter(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 780),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                 Chip(
                   label: Text(program.category),
                   backgroundColor: AppColors.lavender,
@@ -192,7 +197,10 @@ class ProgramDetailsScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-              ]),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
         ],

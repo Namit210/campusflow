@@ -31,6 +31,11 @@ class _MainShellState extends State<MainShell> {
         selectedIndex: _index,
         backgroundColor: Colors.white,
         indicatorColor: AppColors.lavender,
+        indicatorShape: const StadiumBorder(),
+        elevation: 2,
+        labelTextStyle: const WidgetStatePropertyAll(
+          TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+        ),
         onDestinationSelected: (i) => setState(() => _index = i),
         destinations: const [
           NavigationDestination(
@@ -87,7 +92,7 @@ class _ProfileScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),
       body: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(20),
         child: Column(
           children: [
             const SizedBox(height: 12),
