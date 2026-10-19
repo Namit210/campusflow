@@ -31,24 +31,33 @@ class _MainShellState extends State<MainShell> {
         selectedIndex: _index,
         backgroundColor: Colors.white,
         indicatorColor: AppColors.lavender,
+        indicatorShape: const StadiumBorder(),
+        elevation: 2,
+        labelTextStyle: const WidgetStatePropertyAll(
+          TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+        ),
         onDestinationSelected: (i) => setState(() => _index = i),
         destinations: const [
           NavigationDestination(
-              icon: Icon(Icons.home_outlined),
-              selectedIcon: Icon(Icons.home),
-              label: 'Home'),
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home),
+            label: 'Home',
+          ),
           NavigationDestination(
-              icon: Icon(Icons.menu_book_outlined),
-              selectedIcon: Icon(Icons.menu_book),
-              label: 'Programs'),
+            icon: Icon(Icons.menu_book_outlined),
+            selectedIcon: Icon(Icons.menu_book),
+            label: 'Programs',
+          ),
           NavigationDestination(
-              icon: Icon(Icons.event_outlined),
-              selectedIcon: Icon(Icons.event),
-              label: 'Events'),
+            icon: Icon(Icons.event_outlined),
+            selectedIcon: Icon(Icons.event),
+            label: 'Events',
+          ),
           NavigationDestination(
-              icon: Icon(Icons.person_outline),
-              selectedIcon: Icon(Icons.person),
-              label: 'Profile'),
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
+            label: 'Profile',
+          ),
         ],
       ),
     );
@@ -70,8 +79,10 @@ class _PlaceholderScreen extends StatelessWidget {
           children: [
             Icon(icon, size: 56, color: AppColors.lavender),
             const SizedBox(height: 12),
-            Text('$title coming soon',
-                style: const TextStyle(color: AppColors.muted)),
+            Text(
+              '$title coming soon',
+              style: const TextStyle(color: AppColors.muted),
+            ),
           ],
         ),
       ),
@@ -87,27 +98,33 @@ class _ProfileScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),
       body: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(20),
         child: Column(
           children: [
             const SizedBox(height: 12),
             const CircleAvatar(
               radius: 44,
-              backgroundColor: AppColors.indigo,
-              child: Text('A',
-                  style: TextStyle(fontSize: 36, color: Colors.white)),
+              backgroundColor: AppColors.navy,
+              child: Text(
+                'A',
+                style: TextStyle(fontSize: 36, color: Colors.white),
+              ),
             ),
             const SizedBox(height: 12),
-            const Text('Alex',
-                style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.navy)),
+            const Text(
+              'Alex',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+                color: AppColors.navy,
+              ),
+            ),
             const Text('Learner', style: TextStyle(color: AppColors.muted)),
             const Spacer(),
             OutlinedButton.icon(
               style: OutlinedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(50)),
+                minimumSize: const Size.fromHeight(50),
+              ),
               icon: const Icon(Icons.logout),
               label: const Text('Log out'),
               onPressed: () => Navigator.pushAndRemoveUntil(

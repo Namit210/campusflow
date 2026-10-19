@@ -31,19 +31,31 @@ class ProgramProvider extends ChangeNotifier {
         'Turn observations into clear problem statements',
         'Build and test a low-fidelity prototype',
       ],
-      recommendation: 'Recommended for students who enjoy solving open-ended problems.',
+      recommendation:
+          'Recommended for students who enjoy solving open-ended problems.',
       duration: '1 day',
       fee: 'Free',
       supportedBy: 'Campus Innovation Lab',
       startsInDays: 0,
-      learningPath: ['Discover user needs', 'Define the challenge', 'Prototype and present'],
+      learningPath: [
+        'Discover user needs',
+        'Define the challenge',
+        'Prototype and present',
+      ],
       lastDateToApply: 'Oct 14, 2026',
       startDate: 'Oct 15, 2026',
       endDate: 'Oct 15, 2026',
       completionRewards: ['Certificate of completion', 'Innovation Lab badge'],
-      eligibility: ['Open to all enrolled students', 'No prior experience required'],
+      eligibility: [
+        'Open to all enrolled students',
+        'No prior experience required',
+      ],
       icon: Icons.lightbulb_outline,
-      color: Color(0xFF4F46E5),
+      color: Color(0xFFCF491D),
+      progress: 47,
+      institution: 'Saint Louis University',
+      institutionShort: 'SLU',
+      nextSubmission: 'Nov 5, 2026, 15:00',
     ),
     Program(
       id: '2',
@@ -69,12 +81,17 @@ class ProgramProvider extends ChangeNotifier {
         'Ask questions during expert talks',
         'Meet mentors and build your campus network',
       ],
-      recommendation: 'A great fit if you want inspiration and connections across campus.',
+      recommendation:
+          'A great fit if you want inspiration and connections across campus.',
       duration: '1 day',
       fee: 'Free',
       supportedBy: 'Office of Student Innovation',
       startsInDays: 1,
-      learningPath: ['Explore', 'Learn from experts', 'Connect and collaborate'],
+      learningPath: [
+        'Explore',
+        'Learn from experts',
+        'Connect and collaborate',
+      ],
       lastDateToApply: 'Oct 17, 2026',
       startDate: 'Oct 18, 2026',
       endDate: 'Oct 18, 2026',
@@ -82,6 +99,10 @@ class ProgramProvider extends ChangeNotifier {
       eligibility: ['Open to all students and recent graduates'],
       icon: Icons.rocket_launch_outlined,
       color: Color(0xFF7C3AED),
+      progress: 25,
+      institution: 'Rochester Institute of Technology',
+      institutionShort: 'RIT',
+      nextSubmission: 'Dec 31, 2026, 23:59',
     ),
     Program(
       id: '3',
@@ -107,19 +128,31 @@ class ProgramProvider extends ChangeNotifier {
         'Practice interview questions with feedback',
         'Improve your professional online presence',
       ],
-      recommendation: 'Recommended for students preparing for internships or placements.',
+      recommendation:
+          'Recommended for students preparing for internships or placements.',
       duration: '3 hours',
       fee: 'Free',
       supportedBy: 'Career Development Cell',
       startsInDays: 5,
-      learningPath: ['Position your strengths', 'Practice your story', 'Plan your next step'],
+      learningPath: [
+        'Position your strengths',
+        'Practice your story',
+        'Plan your next step',
+      ],
       lastDateToApply: 'Oct 21, 2026',
       startDate: 'Oct 22, 2026',
       endDate: 'Oct 22, 2026',
-      completionRewards: ['Career readiness certificate', 'Resume review voucher'],
+      completionRewards: [
+        'Career readiness certificate',
+        'Resume review voucher',
+      ],
       eligibility: ['Open to undergraduate and postgraduate students'],
       icon: Icons.work_outline,
       color: Color(0xFF14B8A6),
+      progress: 11,
+      institution: 'Saint Louis University',
+      institutionShort: 'SLU',
+      nextSubmission: 'Dec 31, 2026, 23:59',
     ),
     Program(
       id: '4',
@@ -145,7 +178,8 @@ class ProgramProvider extends ChangeNotifier {
         'Hear practical stories from product leaders',
         'Ask questions about careers in technology',
       ],
-      recommendation: 'Ideal for curious builders exploring product and engineering careers.',
+      recommendation:
+          'Ideal for curious builders exploring product and engineering careers.',
       duration: '3 hours',
       fee: 'Free',
       supportedBy: 'Tech Community Club',
@@ -183,7 +217,8 @@ class ProgramProvider extends ChangeNotifier {
         'Build a realistic routine for busy weeks',
         'Learn tools for managing academic stress',
       ],
-      recommendation: 'Recommended for anyone looking for practical ways to reset and recharge.',
+      recommendation:
+          'Recommended for anyone looking for practical ways to reset and recharge.',
       duration: '2 hours',
       fee: 'Free',
       supportedBy: 'Student Wellness Center',
@@ -192,14 +227,22 @@ class ProgramProvider extends ChangeNotifier {
       lastDateToApply: 'Oct 29, 2026',
       startDate: 'Oct 30, 2026',
       endDate: 'Oct 30, 2026',
-      completionRewards: ['Wellness participation certificate', 'Mindful Campus badge'],
+      completionRewards: [
+        'Wellness participation certificate',
+        'Mindful Campus badge',
+      ],
       eligibility: ['Open to all students and staff'],
       icon: Icons.spa_outlined,
       color: Color(0xFFEC4899),
     ),
   ];
 
-  final List<String> categories = const ['All', 'Workshop', 'Seminar', 'Career'];
+  final List<String> categories = const [
+    'All',
+    'Workshop',
+    'Seminar',
+    'Career',
+  ];
 
   final List<AppNotification> _notifications = [
     AppNotification(
@@ -252,8 +295,7 @@ class ProgramProvider extends ChangeNotifier {
     return _programs.where((p) {
       final matchesCategory =
           _selectedCategory == 'All' || p.category == _selectedCategory;
-      final matchesQuery =
-          p.title.toLowerCase().contains(_query.toLowerCase());
+      final matchesQuery = p.title.toLowerCase().contains(_query.toLowerCase());
       return matchesCategory && matchesQuery;
     }).toList();
   }

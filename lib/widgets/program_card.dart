@@ -47,30 +47,42 @@ class ProgramCard extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.navy,
+                      color: AppColors.indigo,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     program.tagline,
-                    style: const TextStyle(fontSize: 12, color: AppColors.muted),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.muted,
+                    ),
                   ),
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      const Icon(Icons.calendar_today_outlined,
-                          size: 12, color: AppColors.muted),
+                      const Icon(
+                        Icons.calendar_today_outlined,
+                        size: 12,
+                        color: AppColors.muted,
+                      ),
                       const SizedBox(width: 4),
-                      Text(program.date,
-                          style: const TextStyle(
-                              fontSize: 12, color: AppColors.muted)),
+                      Text(
+                        program.date,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.muted,
+                        ),
+                      ),
                       const Spacer(),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 2),
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: left > 0
-                              ? const Color(0xFFDCFCE7)
+                              ? AppColors.successBackground
                               : const Color(0xFFFEE2E2),
                           borderRadius: BorderRadius.circular(20),
                         ),

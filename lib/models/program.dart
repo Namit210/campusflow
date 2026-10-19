@@ -27,6 +27,10 @@ class Program {
   final List<String> eligibility;
   final IconData icon;
   final Color color;
+  final int progress;
+  final String institution;
+  final String institutionShort;
+  final String nextSubmission;
 
   const Program({
     required this.id,
@@ -55,5 +59,9 @@ class Program {
     required this.eligibility,
     required this.icon,
     required this.color,
+    this.progress = 0,
+    this.institution = 'CampusFlow',
+    this.institutionShort = 'CF',
+    this.nextSubmission = '',
   });
 }
