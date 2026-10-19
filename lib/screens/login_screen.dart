@@ -51,13 +51,18 @@ class _LoginScreenState extends State<LoginScreen> {
                   const Icon(Icons.school_rounded,
                       size: 64, color: AppColors.indigo),
                   const SizedBox(height: 12),
-                  const Text(
-                    'CampusFlow',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 30,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.navy,
+                  ShaderMask(
+                    shaderCallback: (bounds) => const LinearGradient(
+                      colors: [Color(0xFFE53935), Color(0xFFA50881)],
+                    ).createShader(bounds),
+                    child: const Text(
+                      'CampusFlow',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                   const Text(

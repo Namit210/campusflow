@@ -47,7 +47,7 @@ class ProgramCard extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.navy,
+                      color: AppColors.indigo,
                     ),
                   ),
                   const SizedBox(height: 2),

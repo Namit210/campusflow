@@ -69,134 +69,149 @@ class ProgramDetailsScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                Chip(
-                  label: Text(program.category),
-                  backgroundColor: AppColors.lavender,
-                  side: BorderSide.none,
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  program.title,
-                  style: const TextStyle(
-                    fontSize: 27,
-                    height: 1.15,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.navy,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  program.tagline,
-                  style: const TextStyle(fontSize: 16, color: AppColors.muted),
-                ),
-                const SizedBox(height: 18),
-                Text(program.about, style: _bodyStyle),
-                const SizedBox(height: 24),
-                _Section(
-                  title: 'Program at a glance',
-                  child: Wrap(
-                    spacing: 10,
-                    runSpacing: 10,
-                    children: [
-                      _Fact(icon: Icons.schedule, label: program.duration),
-                      _Fact(icon: Icons.payments_outlined, label: program.fee),
-                      _Fact(
-                        icon: Icons.location_on_outlined,
-                        label: program.location,
+                      Chip(
+                        label: Text(program.category),
+                        backgroundColor: AppColors.lavender,
+                        side: BorderSide.none,
                       ),
-                    ],
-                  ),
-                ),
-                _Section(
-                  title: 'What you will do',
-                  child: _BulletList(program.whatYouWillDo),
-                ),
-                _Section(
-                  title: 'Recommendation',
-                  child: _Callout(
-                    icon: Icons.thumb_up_alt_outlined,
-                    text: program.recommendation,
-                  ),
-                ),
-                _Section(
-                  title: 'Supported by',
-                  child: _Callout(
-                    icon: Icons.school_outlined,
-                    text: program.supportedBy,
-                  ),
-                ),
-                _Section(
-                  title: 'Learning Path',
-                  child: Column(
-                    children: [
-                      for (var i = 0; i < program.learningPath.length; i++)
-                        _PathItem(
-                          number: i + 1,
-                          title: 'Module ${i + 1}',
-                          description: program.learningPath[i],
-                          isLast: i == program.learningPath.length - 1,
+                      const SizedBox(height: 10),
+                      Text(
+                        program.title,
+                        style: const TextStyle(
+                          fontSize: 27,
+                          height: 1.15,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.indigo,
                         ),
-                    ],
-                  ),
-                ),
-                _Section(
-                  title: 'Upcoming cohort dates',
-                  child: _DateTable(
-                    lastDateToApply: program.lastDateToApply,
-                    startDate: program.startDate,
-                    endDate: program.endDate,
-                  ),
-                ),
-                _Section(
-                  title: 'Rewards for completion',
-                  child: _BulletList(
-                    program.completionRewards,
-                    icon: Icons.stars,
-                  ),
-                ),
-                _Section(
-                  title: 'Eligibility',
-                  child: _BulletList(
-                    program.eligibility,
-                    icon: Icons.verified_user_outlined,
-                  ),
-                ),
-                _Section(
-                  title: 'Your rewards',
-                  child: Card(
-                    elevation: 0,
-                    color: const Color(0xFFFFF7ED),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Everything you earn in one place',
-                            style: TextStyle(fontWeight: FontWeight.w700),
-                          ),
-                          const SizedBox(height: 10),
-                          ...program.completionRewards.map(
-                            (reward) => Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 4),
-                              child: Row(
-                                children: [
-                                  const Icon(
-                                    Icons.workspace_premium,
-                                    size: 19,
-                                    color: Color(0xFFD97706),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(child: Text(reward)),
-                                ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        program.tagline,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: AppColors.muted,
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      Text(program.about, style: _bodyStyle),
+                      const SizedBox(height: 24),
+                      _Section(
+                        title: 'Program at a glance',
+                        child: Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          children: [
+                            _Fact(
+                              icon: Icons.schedule,
+                              label: program.duration,
+                            ),
+                            _Fact(
+                              icon: Icons.payments_outlined,
+                              label: program.fee,
+                            ),
+                            _Fact(
+                              icon: Icons.location_on_outlined,
+                              label: program.location,
+                            ),
+                          ],
+                        ),
+                      ),
+                      _Section(
+                        title: 'What you will do',
+                        child: _BulletList(program.whatYouWillDo),
+                      ),
+                      _Section(
+                        title: 'Recommendation',
+                        child: _Callout(
+                          icon: Icons.thumb_up_alt_outlined,
+                          text: program.recommendation,
+                        ),
+                      ),
+                      _Section(
+                        title: 'Supported by',
+                        child: _Callout(
+                          icon: Icons.school_outlined,
+                          text: program.supportedBy,
+                        ),
+                      ),
+                      _Section(
+                        title: 'Learning Path',
+                        child: Column(
+                          children: [
+                            for (
+                              var i = 0;
+                              i < program.learningPath.length;
+                              i++
+                            )
+                              _PathItem(
+                                number: i + 1,
+                                title: 'Module ${i + 1}',
+                                description: program.learningPath[i],
+                                isLast: i == program.learningPath.length - 1,
                               ),
+                          ],
+                        ),
+                      ),
+                      _Section(
+                        title: 'Upcoming cohort dates',
+                        child: _DateTable(
+                          lastDateToApply: program.lastDateToApply,
+                          startDate: program.startDate,
+                          endDate: program.endDate,
+                        ),
+                      ),
+                      _Section(
+                        title: 'Rewards for completion',
+                        child: _BulletList(
+                          program.completionRewards,
+                          icon: Icons.stars,
+                        ),
+                      ),
+                      _Section(
+                        title: 'Eligibility',
+                        child: _BulletList(
+                          program.eligibility,
+                          icon: Icons.verified_user_outlined,
+                        ),
+                      ),
+                      _Section(
+                        title: 'Your rewards',
+                        child: Card(
+                          elevation: 0,
+                          color: const Color(0xFFFFF7ED),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Everything you earn in one place',
+                                  style: TextStyle(fontWeight: FontWeight.w700),
+                                ),
+                                const SizedBox(height: 10),
+                                ...program.completionRewards.map(
+                                  (reward) => Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 4,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.workspace_premium,
+                                          size: 19,
+                                          color: Color(0xFFD97706),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(child: Text(reward)),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ),
-                ),
                     ],
                   ),
                 ),
@@ -276,7 +291,7 @@ class _Fact extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 18, color: AppColors.indigo),
+          Icon(icon, size: 18, color: AppColors.navy),
           const SizedBox(width: 7),
           Text(label),
         ],
@@ -328,7 +343,7 @@ class _Callout extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(icon, color: AppColors.indigo),
+          Icon(icon, color: AppColors.navy),
           const SizedBox(width: 10),
           Expanded(child: Text(text, style: _bodyStyle)),
         ],
@@ -359,7 +374,7 @@ class _PathItem extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 15,
-                backgroundColor: AppColors.indigo,
+                backgroundColor: AppColors.navy,
                 child: Text(
                   '$number',
                   style: const TextStyle(
@@ -435,7 +450,12 @@ class _DateRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       child: Row(
         children: [
-          Expanded(child: Text(label, style: _bodyStyle)),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(color: AppColors.dateAccent, height: 1.5),
+            ),
+          ),
           Text(value, style: const TextStyle(fontWeight: FontWeight.w700)),
         ],
       ),
