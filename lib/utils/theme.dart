@@ -9,6 +9,8 @@ class AppColors {
   static const background = Color(0xFFF7F7FB);
   static const muted = Color(0xFF6B7280);
   static const border = Color(0xFFE5E7EB);
+  static const successBackground = Color(0xFFDCFCE7);
+  static const dateAccent = Color(0xFF64748B);
 }
 
 /// App-wide theme. Font: Inter (matches the CampusFlow design system).

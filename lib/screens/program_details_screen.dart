@@ -39,7 +39,7 @@ class ProgramDetailsScreen extends StatelessWidget {
                   Image.network(
                     program.imageUrl,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
+                    errorBuilder: (_, _, _) => Container(
                       color: program.color,
                       child: Icon(program.icon, size: 84, color: Colors.white),
                     ),
@@ -236,11 +236,13 @@ class ProgramDetailsScreen extends StatelessWidget {
                       ),
                     );
                   },
-            child: Text(registered
-                ? 'Registered ✓'
-                : full
-                    ? 'Event full'
-                    : 'Register'),
+            child: Text(
+              registered
+                  ? 'Registered ✓'
+                  : full
+                  ? 'Event full'
+                  : 'Register',
+            ),
           ),
         ),
       ),
