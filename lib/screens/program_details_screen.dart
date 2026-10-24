@@ -3,7 +3,9 @@ import 'package:provider/provider.dart';
 
 import '../models/program.dart';
 import '../providers/program_provider.dart';
+import '../utils/context_colors.dart';
 import '../utils/theme.dart';
+import '../widgets/feedback_button.dart';
 import 'registration_confirmation_screen.dart';
 
 class ProgramDetailsScreen extends StatelessWidget {
@@ -71,29 +73,30 @@ class ProgramDetailsScreen extends StatelessWidget {
                     children: [
                       Chip(
                         label: Text(program.category),
+                        labelStyle: const TextStyle(color: AppColors.navy),
                         backgroundColor: AppColors.lavender,
                         side: BorderSide.none,
                       ),
                       const SizedBox(height: 10),
                       Text(
                         program.title,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 27,
                           height: 1.15,
                           fontWeight: FontWeight.w800,
-                          color: AppColors.indigo,
+                          color: context.accent,
                         ),
                       ),
                       const SizedBox(height: 6),
                       Text(
                         program.tagline,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
-                          color: AppColors.muted,
+                          color: context.textMuted,
                         ),
                       ),
                       const SizedBox(height: 18),
-                      Text(program.about, style: _bodyStyle),
+                      Text(program.about, style: _bodyStyle(context)),
                       const SizedBox(height: 24),
                       _Section(
                         title: 'Program at a glance',
@@ -175,10 +178,16 @@ class ProgramDetailsScreen extends StatelessWidget {
                         ),
                       ),
                       _Section(
+                        title: 'Share your experience',
+                        child: FeedbackButton(program: program),
+                      ),
+                      _Section(
                         title: 'Your rewards',
                         child: Card(
                           elevation: 0,
-                          color: const Color(0xFFFFF7ED),
+                          color: context.isDark
+                              ? const Color(0xFF3A2A12)
+                              : const Color(0xFFFFF7ED),
                           child: Padding(
                             padding: const EdgeInsets.all(16),
                             child: Column(
@@ -250,7 +259,8 @@ class ProgramDetailsScreen extends StatelessWidget {
   }
 }
 
-const _bodyStyle = TextStyle(color: AppColors.muted, height: 1.5);
+TextStyle _bodyStyle(BuildContext context) =>
+    TextStyle(color: context.textMuted, height: 1.5);
 
 class _Section extends StatelessWidget {
   final String title;
@@ -286,14 +296,14 @@ class _Fact extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.borderColor),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 18, color: AppColors.navy),
+          Icon(icon, size: 18, color: context.textPrimary),
           const SizedBox(width: 7),
           Text(label),
         ],
@@ -319,7 +329,7 @@ class _BulletList extends StatelessWidget {
                 children: [
                   Icon(icon, size: 19, color: AppColors.teal),
                   const SizedBox(width: 9),
-                  Expanded(child: Text(item, style: _bodyStyle)),
+                  Expanded(child: Text(item, style: _bodyStyle(context))),
                 ],
               ),
             ),
@@ -340,14 +350,14 @@ class _Callout extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFEEF2FF),
+        color: context.tint,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
-          Icon(icon, color: AppColors.navy),
+          Icon(icon, color: context.textPrimary),
           const SizedBox(width: 10),
-          Expanded(child: Text(text, style: _bodyStyle)),
+          Expanded(child: Text(text, style: _bodyStyle(context))),
         ],
       ),
     );
@@ -376,7 +386,8 @@ class _PathItem extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 15,
-                backgroundColor: AppColors.navy,
+                backgroundColor:
+                    context.isDark ? AppColors.indigo : AppColors.navy,
                 child: Text(
                   '$number',
                   style: const TextStyle(
@@ -401,7 +412,7 @@ class _PathItem extends StatelessWidget {
                     style: const TextStyle(fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 3),
-                  Text(description, style: _bodyStyle),
+                  Text(description, style: _bodyStyle(context)),
                 ],
               ),
             ),
@@ -426,9 +437,9 @@ class _DateTable extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: context.borderColor),
       ),
       child: Column(
         children: [

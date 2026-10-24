@@ -4,6 +4,7 @@ import '../utils/theme.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
 import 'program_list_screen.dart';
+import '../utils/context_colors.dart';
 
 /// Holds the bottom navigation: Home · Programs · Events · Profile
 class MainShell extends StatefulWidget {
@@ -29,8 +30,8 @@ class _MainShellState extends State<MainShell> {
       body: IndexedStack(index: _index, children: pages),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
-        backgroundColor: Colors.white,
-        indicatorColor: AppColors.lavender,
+        backgroundColor: context.surface,
+        indicatorColor: context.isDark ? AppColors.indigo.withValues(alpha: 0.48) : AppColors.lavender,
         indicatorShape: const StadiumBorder(),
         elevation: 2,
         labelTextStyle: const WidgetStatePropertyAll(

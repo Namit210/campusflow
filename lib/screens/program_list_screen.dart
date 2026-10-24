@@ -5,6 +5,7 @@ import '../providers/program_provider.dart';
 import '../utils/theme.dart';
 import '../widgets/program_card.dart';
 import 'program_details_screen.dart';
+import '../utils/context_colors.dart';
 
 class ProgramListScreen extends StatelessWidget {
   const ProgramListScreen({super.key});
@@ -53,7 +54,7 @@ class ProgramListScreen extends StatelessWidget {
                   selected: selected,
                   selectedColor: AppColors.indigo,
                   labelStyle: TextStyle(
-                    color: selected ? Colors.white : AppColors.navy,
+                    color: selected ? Colors.white : context.textPrimary,
                   ),
                   showCheckmark: false,
                   onSelected: (_) => provider.setCategory(c),

@@ -64,4 +64,64 @@ class Program {
     this.institutionShort = 'CF',
     this.nextSubmission = '',
   });
+
+  // JSON uses a short name for the icon and a "#RRGGBB" string for the colour.
+  static const Map<String, IconData> _icons = {
+    'lightbulb': Icons.lightbulb_outline,
+    'rocket': Icons.rocket_launch_outlined,
+    'work': Icons.work_outline,
+    'devices': Icons.devices_outlined,
+    'spa': Icons.spa_outlined,
+  };
+
+  static Color _parseColor(String? hex) {
+    if (hex == null || !hex.startsWith('#') || hex.length != 7) {
+      return const Color(0xFF4F46E5);
+    }
+    return Color(int.tryParse('FF${hex.substring(1)}', radix: 16) ?? 0xFF4F46E5);
+  }
+
+  /// Builds a Program from one JSON object. Missing fields fall back to
+  /// safe defaults so one bad record cannot crash the app.
+  factory Program.fromJson(Map<String, dynamic> json) {
+    String str(String key, [String fallback = '']) =>
+        json[key]?.toString() ?? fallback;
+    int integer(String key, [int fallback = 0]) =>
+        (json[key] as num?)?.toInt() ?? fallback;
+    List<String> list(String key) =>
+        (json[key] as List<dynamic>? ?? const []).map((e) => e.toString()).toList();
+
+    return Program(
+      id: str('id'),
+      title: str('title'),
+      tagline: str('tagline'),
+      imageUrl: str('imageUrl'),
+      category: str('category', 'Workshop'),
+      date: str('date'),
+      time: str('time'),
+      location: str('location'),
+      capacity: integer('capacity'),
+      registered: integer('registered'),
+      about: str('about'),
+      learnPoints: list('learnPoints'),
+      whatYouWillDo: list('whatYouWillDo'),
+      recommendation: str('recommendation'),
+      duration: str('duration'),
+      fee: str('fee', 'Free'),
+      supportedBy: str('supportedBy'),
+      startsInDays: integer('startsInDays'),
+      learningPath: list('learningPath'),
+      lastDateToApply: str('lastDateToApply'),
+      startDate: str('startDate'),
+      endDate: str('endDate'),
+      completionRewards: list('completionRewards'),
+      eligibility: list('eligibility'),
+      icon: _icons[str('icon')] ?? Icons.school_outlined,
+      color: _parseColor(json['color'] as String?),
+      progress: integer('progress'),
+      institution: str('institution', 'CampusFlow'),
+      institutionShort: str('institutionShort', 'CF'),
+      nextSubmission: str('nextSubmission'),
+    );
+  }
 }
