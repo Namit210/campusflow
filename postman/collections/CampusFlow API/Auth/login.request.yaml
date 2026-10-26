@@ -1,0 +1,26 @@
+$kind: http-request
+name: Login
+method: POST
+url: '{{base_url}}/auth/login'
+order: 2000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "alex@test.com",
+      "password": "secret12"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('login returns a token', function () {
+        pm.response.to.have.status(200);
+        const body = pm.response.json();
+        pm.expect(body.token).to.be.a('string').and.not.empty;
+        pm.expect(body.user.email).to.eql('alex@test.com');
+        pm.environment.set('token', body.token);
+      });

@@ -1,0 +1,19 @@
+$kind: http-request
+name: List programs
+method: GET
+url: '{{base_url}}/programs'
+order: 1000
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('returns seeded programs', function () {
+        pm.response.to.have.status(200);
+        const programs = pm.response.json();
+        pm.expect(programs).to.be.an('array').and.not.empty;
+        pm.expect(programs[0]).to.have.property('id');
+        pm.expect(programs[0]).to.have.property('title');
+        const design = programs.find(function (p) { return p.id === 'p1'; });
+        pm.expect(design.title).to.eql('Design Thinking Workshop');
+        pm.environment.set('programId', design.id);
+      });

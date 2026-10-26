@@ -1,0 +1,222 @@
+[
+  {
+    "id": "p1",
+    "title": "Design Thinking Workshop",
+    "tagline": "Turn messy campus problems into testable ideas.",
+    "imageUrl": "https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200",
+    "category": "Workshop",
+    "date": "Oct 15, 2026",
+    "time": "10:00 AM",
+    "location": "Innovation Lab, Block C",
+    "capacity": 40,
+    "registered": 18,
+    "about": "A hands-on workshop on empathy mapping, ideation, and rapid prototyping for student-led campus challenges.",
+    "learnPoints": [
+      "Frame problems from real user interviews",
+      "Build low-fidelity prototypes in a day",
+      "Pitch a solution with evidence, not opinions"
+    ],
+    "whatYouWillDo": [
+      "Interview classmates about a campus friction",
+      "Sketch and test two solution concepts",
+      "Present a 3-minute prototype demo"
+    ],
+    "recommendation": "Best for first- and second-year students who want a practical intro to product thinking.",
+    "duration": "1 day",
+    "fee": "Free",
+    "supportedBy": "Campus Innovation Cell",
+    "startsInDays": 12,
+    "learningPath": [
+      "Discover: interviews and empathy maps",
+      "Define: problem statements",
+      "Prototype and test with peers"
+    ],
+    "lastDateToApply": "Oct 12, 2026",
+    "startDate": "Oct 15, 2026",
+    "endDate": "Oct 15, 2026",
+    "completionRewards": ["Certificate of participation", "Design toolkit PDF"],
+    "eligibility": ["Open to all enrolled students", "No prior design experience required"],
+    "icon": "lightbulb",
+    "color": "#4F46E5",
+    "progress": 0,
+    "institution": "CampusFlow",
+    "institutionShort": "CF",
+    "nextSubmission": ""
+  },
+  {
+    "id": "p2",
+    "title": "Career Skills Bootcamp",
+    "tagline": "Resumes, interviews, and a plan you can actually follow.",
+    "imageUrl": "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=1200",
+    "category": "Career",
+    "date": "Oct 22, 2026",
+    "time": "2:00 PM",
+    "location": "Career Centre Auditorium",
+    "capacity": 80,
+    "registered": 47,
+    "about": "A three-session bootcamp covering resume storytelling, behavioural interviews, and internship outreach.",
+    "learnPoints": [
+      "Rewrite your resume around outcomes",
+      "Practice STAR answers live",
+      "Build a 30-day internship outreach list"
+    ],
+    "whatYouWillDo": [
+      "Peer-review resumes in small groups",
+      "Record a mock interview clip",
+      "Send one real outreach email during the session"
+    ],
+    "recommendation": "Ideal if you are applying for internships this semester.",
+    "duration": "3 sessions",
+    "fee": "Free",
+    "supportedBy": "Office of Career Services",
+    "startsInDays": 19,
+    "learningPath": [
+      "Resume and LinkedIn",
+      "Interview practice",
+      "Outreach and follow-up"
+    ],
+    "lastDateToApply": "Oct 18, 2026",
+    "startDate": "Oct 22, 2026",
+    "endDate": "Oct 24, 2026",
+    "completionRewards": ["Career services badge", "Resume review credit"],
+    "eligibility": ["Undergraduate and postgraduate students"],
+    "icon": "work",
+    "color": "#0F766E",
+    "progress": 0,
+    "institution": "CampusFlow",
+    "institutionShort": "CF",
+    "nextSubmission": "Resume draft due Oct 21"
+  },
+  {
+    "id": "p3",
+    "title": "AI & Future Skills",
+    "tagline": "Use AI tools well — and know when not to.",
+    "imageUrl": "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=1200",
+    "category": "Seminar",
+    "date": "Nov 4, 2026",
+    "time": "11:00 AM",
+    "location": "Lecture Hall 2",
+    "capacity": 120,
+    "registered": 64,
+    "about": "A seminar on practical AI literacy for coursework, research notes, and campus projects, with a focus on academic integrity.",
+    "learnPoints": [
+      "Prompt patterns that save study time",
+      "Verify model output before you submit",
+      "Choose the right tool for the task"
+    ],
+    "whatYouWillDo": [
+      "Compare three tools on the same assignment prompt",
+      "Draft a citation-safe workflow",
+      "Q&A with faculty and industry guests"
+    ],
+    "recommendation": "Useful for every major; no coding background required.",
+    "duration": "Half day",
+    "fee": "Free",
+    "supportedBy": "Library & Digital Learning",
+    "startsInDays": 32,
+    "learningPath": [
+      "AI literacy basics",
+      "Workflows for coursework",
+      "Integrity and evaluation"
+    ],
+    "lastDateToApply": "Nov 1, 2026",
+    "startDate": "Nov 4, 2026",
+    "endDate": "Nov 4, 2026",
+    "completionRewards": ["Digital literacy micro-credential"],
+    "eligibility": ["Open to all students and teaching assistants"],
+    "icon": "devices",
+    "color": "#7C3AED",
+    "progress": 0,
+    "institution": "CampusFlow",
+    "institutionShort": "CF",
+    "nextSubmission": ""
+  },
+  {
+    "id": "p4",
+    "title": "Tech & Product Meet",
+    "tagline": "Meet builders shipping student products this term.",
+    "imageUrl": "https://images.unsplash.com/photo-1515169067868-5387ec356754?w=1200",
+    "category": "Career",
+    "date": "Oct 27, 2026",
+    "time": "4:00 PM",
+    "location": "Student Union Lounge",
+    "capacity": 60,
+    "registered": 29,
+    "about": "An informal meetup with alumni PMs and student founders. Bring a question, leave with a next step.",
+    "learnPoints": [
+      "How campus projects become internships",
+      "What hiring managers scan first",
+      "How to ask for a referral without being awkward"
+    ],
+    "whatYouWillDo": [
+      "Round-table intros",
+      "Office-hours style 1:1s",
+      "Optional demo corner for student apps"
+    ],
+    "recommendation": "Come if you have a project or want one.",
+    "duration": "2 hours",
+    "fee": "Free",
+    "supportedBy": "Alumni Relations",
+    "startsInDays": 24,
+    "learningPath": [
+      "Community intros",
+      "Product stories",
+      "Open networking"
+    ],
+    "lastDateToApply": "Oct 26, 2026",
+    "startDate": "Oct 27, 2026",
+    "endDate": "Oct 27, 2026",
+    "completionRewards": ["Community access pass"],
+    "eligibility": ["Students and recent alumni"],
+    "icon": "rocket",
+    "color": "#DB2777",
+    "progress": 0,
+    "institution": "CampusFlow",
+    "institutionShort": "CF",
+    "nextSubmission": ""
+  },
+  {
+    "id": "p5",
+    "title": "Campus Innovation Day",
+    "tagline": "A campus-wide showcase of student experiments.",
+    "imageUrl": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200",
+    "category": "Seminar",
+    "date": "Nov 12, 2026",
+    "time": "9:00 AM",
+    "location": "Main Quad & Exhibition Hall",
+    "capacity": 200,
+    "registered": 91,
+    "about": "Talks, booths, and live demos from student clubs and research groups. Register to present or to attend.",
+    "learnPoints": [
+      "See what other departments are building",
+      "Find collaborators for next semester",
+      "Practice explaining your work to non-experts"
+    ],
+    "whatYouWillDo": [
+      "Walk the exhibition",
+      "Attend two lightning talks",
+      "Optional: submit a demo booth"
+    ],
+    "recommendation": "Great if you want a low-pressure way to get involved in campus projects.",
+    "duration": "1 day",
+    "fee": "Free",
+    "supportedBy": "Student Affairs",
+    "startsInDays": 40,
+    "learningPath": [
+      "Morning keynote",
+      "Booths and demos",
+      "Closing mixer"
+    ],
+    "lastDateToApply": "Nov 8, 2026",
+    "startDate": "Nov 12, 2026",
+    "endDate": "Nov 12, 2026",
+    "completionRewards": ["Attendee badge", "Presenter certificate if you demo"],
+    "eligibility": ["Open campus event; visitors welcome with student host"],
+    "icon": "spa",
+    "color": "#EA580C",
+    "progress": 0,
+    "institution": "CampusFlow",
+    "institutionShort": "CF",
+    "nextSubmission": "Demo booth form due Nov 5"
+  }
+]

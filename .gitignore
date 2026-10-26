@@ -45,3 +45,8 @@ app.*.map.json
 /android/app/release
 # Widget Preview related
 .widget_preview/
+
+backend/.env
+backend/package-lock.json
+backend/node_modules/
+backend/.cache/

@@ -1,0 +1,16 @@
+$kind: http-request
+name: Mark all notifications read
+method: PATCH
+url: '{{base_url}}/notifications/read-all'
+order: 3000
+headers:
+  - key: Authorization
+    value: 'Bearer {{token}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('unread count is zero', function () {
+        pm.response.to.have.status(200);
+        pm.expect(pm.response.json().unreadCount).to.eql(0);
+      });
