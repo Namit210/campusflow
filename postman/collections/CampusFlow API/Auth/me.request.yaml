@@ -1,0 +1,16 @@
+$kind: http-request
+name: Current user
+method: GET
+url: '{{base_url}}/auth/me'
+order: 3000
+headers:
+  - key: Authorization
+    value: 'Bearer {{token}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('returns the logged-in user', function () {
+        pm.response.to.have.status(200);
+        pm.expect(pm.response.json().user.email).to.eql('alex@test.com');
+      });

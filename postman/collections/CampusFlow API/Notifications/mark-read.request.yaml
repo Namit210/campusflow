@@ -1,0 +1,19 @@
+$kind: http-request
+name: Mark notification read
+method: PATCH
+url: '{{base_url}}/notifications/:id/read'
+order: 2000
+headers:
+  - key: Authorization
+    value: 'Bearer {{token}}'
+pathVariables:
+  - key: id
+    value: '{{notificationId}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('marks one notification read', function () {
+        pm.response.to.have.status(200);
+        pm.expect(pm.response.json().read).to.eql(true);
+      });
