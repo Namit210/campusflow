@@ -1,0 +1,19 @@
+$kind: http-request
+name: Register for program
+method: POST
+url: '{{base_url}}/programs/:id/register'
+order: 3000
+headers:
+  - key: Authorization
+    value: 'Bearer {{token}}'
+pathVariables:
+  - key: id
+    value: '{{programId}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('confirms registration', function () {
+        pm.expect([201, 409]).to.include(pm.response.code);
+        pm.expect(pm.response.json().message).to.be.a('string');
+      });

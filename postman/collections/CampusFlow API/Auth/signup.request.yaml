@@ -1,0 +1,24 @@
+$kind: http-request
+name: Signup
+method: POST
+url: '{{base_url}}/auth/signup'
+order: 1000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "name": "Alex Learner",
+      "email": "alex@test.com",
+      "password": "secret12"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('signup creates an account or reports a duplicate', function () {
+        pm.expect([201, 409]).to.include(pm.response.code);
+        pm.expect(pm.response.json().message).to.be.a('string');
+      });

@@ -1,0 +1,18 @@
+$kind: http-request
+name: List my registrations
+method: GET
+url: '{{base_url}}/registrations'
+order: 1000
+headers:
+  - key: Authorization
+    value: 'Bearer {{token}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('returns the current user registrations', function () {
+        pm.response.to.have.status(200);
+        const items = pm.response.json();
+        pm.expect(items).to.be.an('array');
+        pm.expect(items[0].programId).to.be.a('string');
+      });

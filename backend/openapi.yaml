@@ -1,0 +1,378 @@
+openapi: 3.0.3
+info:
+  title: CampusFlow API
+  version: 1.0.0
+  description: Backend for the CampusFlow Flutter app. Send JWTs as Authorization Bearer tokens.
+servers:
+  - url: http://localhost:3000
+    description: Local
+paths:
+  /health:
+    get:
+      summary: Health check
+      operationId: getHealth
+      responses:
+        '200':
+          description: Service is up
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status:
+                    type: string
+                    example: ok
+  /auth/signup:
+    post:
+      summary: Create an account
+      operationId: signup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupRequest'
+            example:
+              name: Alex Learner
+              email: alex@test.com
+              password: secret12
+      responses:
+        '201':
+          description: Account created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignupResponse'
+        '400':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+  /auth/login:
+    post:
+      summary: Log in
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: JWT and user profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+  /auth/me:
+    get:
+      summary: Current user
+      operationId: getMe
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Profile
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [user]
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Error'
+    put:
+      summary: Update name or email
+      operationId: updateMe
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                email: { type: string, format: email }
+      responses:
+        '200':
+          description: Updated profile
+        '401':
+          $ref: '#/components/responses/Error'
+    delete:
+      summary: Delete the current account
+      operationId: deleteMe
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Deleted
+        '401':
+          $ref: '#/components/responses/Error'
+  /programs:
+    get:
+      summary: List programs
+      operationId: listPrograms
+      parameters:
+        - in: query
+          name: category
+          schema:
+            type: string
+            enum: [All, Workshop, Seminar, Career]
+        - in: query
+          name: q
+          schema:
+            type: string
+          description: Case-insensitive title search
+      responses:
+        '200':
+          description: Program list matching the Flutter Program model
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Program'
+  /programs/{id}:
+    get:
+      summary: Get one program
+      operationId: getProgram
+      parameters:
+        - $ref: '#/components/parameters/ProgramId'
+      responses:
+        '200':
+          description: Program
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Program'
+        '404':
+          $ref: '#/components/responses/Error'
+  /programs/{id}/register:
+    post:
+      summary: Register the current user for a program
+      operationId: registerForProgram
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProgramId'
+      responses:
+        '201':
+          description: Registration confirmed; increments program.registered and creates a notification
+        '401':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          description: Already registered or event full
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /programs/{id}/feedback:
+    post:
+      summary: Submit program feedback
+      operationId: submitFeedback
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/ProgramId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequest'
+      responses:
+        '201':
+          description: Feedback stored
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+  /registrations:
+    get:
+      summary: Current user's registrations
+      operationId: listRegistrations
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Registrations with nested program
+        '401':
+          $ref: '#/components/responses/Error'
+  /notifications:
+    get:
+      summary: Current user's notifications
+      operationId: listNotifications
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Notifications newest first
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationList'
+  /notifications/read-all:
+    patch:
+      summary: Mark every notification as read
+      operationId: markAllNotificationsRead
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Updated list
+  /notifications/{id}/read:
+    patch:
+      summary: Mark one notification as read
+      operationId: markNotificationRead
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Updated notification
+        '404':
+          $ref: '#/components/responses/Error'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    ProgramId:
+      in: path
+      name: id
+      required: true
+      schema: { type: string }
+      example: p1
+  responses:
+    Error:
+      description: Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    Error:
+      type: object
+      required: [message]
+      properties:
+        message: { type: string }
+    SignupRequest:
+      type: object
+      required: [name, email, password]
+      properties:
+        name: { type: string }
+        email: { type: string, format: email }
+        password: { type: string, minLength: 6 }
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string }
+    User:
+      type: object
+      required: [id, name, email]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        email: { type: string }
+        createdAt: { type: string, format: date-time }
+    SignupResponse:
+      type: object
+      required: [message, user]
+      properties:
+        message: { type: string }
+        user: { $ref: '#/components/schemas/User' }
+    LoginResponse:
+      type: object
+      required: [token, user]
+      properties:
+        token: { type: string }
+        user: { $ref: '#/components/schemas/User' }
+    Program:
+      type: object
+      required: [id, title, category, capacity, registered]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        tagline: { type: string }
+        imageUrl: { type: string }
+        category: { type: string, enum: [Workshop, Seminar, Career] }
+        date: { type: string }
+        time: { type: string }
+        location: { type: string }
+        capacity: { type: integer }
+        registered: { type: integer }
+        about: { type: string }
+        learnPoints:
+          type: array
+          items: { type: string }
+        whatYouWillDo:
+          type: array
+          items: { type: string }
+        recommendation: { type: string }
+        duration: { type: string }
+        fee: { type: string }
+        supportedBy: { type: string }
+        startsInDays: { type: integer }
+        learningPath:
+          type: array
+          items: { type: string }
+        lastDateToApply: { type: string }
+        startDate: { type: string }
+        endDate: { type: string }
+        completionRewards:
+          type: array
+          items: { type: string }
+        eligibility:
+          type: array
+          items: { type: string }
+        icon: { type: string }
+        color: { type: string }
+        progress: { type: integer }
+        institution: { type: string }
+        institutionShort: { type: string }
+        nextSubmission: { type: string }
+    FeedbackRequest:
+      type: object
+      required: [rating, category, email, comment]
+      properties:
+        rating: { type: integer, minimum: 1, maximum: 5 }
+        category:
+          type: string
+          enum:
+            - Content
+            - Speaker / Instructor
+            - Venue / Platform
+            - Organisation
+            - Other
+        email: { type: string, format: email }
+        comment: { type: string, minLength: 10, maxLength: 300 }
+    Notification:
+      type: object
+      properties:
+        id: { type: string }
+        title: { type: string }
+        message: { type: string }
+        icon: { type: string }
+        read: { type: boolean }
+        timeAgo: { type: string }
+        createdAt: { type: string, format: date-time }
+    NotificationList:
+      type: object
+      required: [unreadCount, notifications]
+      properties:
+        unreadCount: { type: integer }
+        notifications:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
