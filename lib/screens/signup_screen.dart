@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+
+import '../providers/auth_provider.dart';
+import '../services/auth_service.dart';
 import '../utils/theme.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -18,6 +20,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final _confirmPasswordCtrl = TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -28,46 +31,64 @@ class _SignupScreenState extends State<SignupScreen> {
     super.dispose();
   }
 
-  bool _isLoading = false;
-
   Future<void> _signup() async {
     if (!_formKey.currentState!.validate()) return;
+
+    final name = _nameCtrl.text.trim();
+    final email = _emailCtrl.text.trim();
+    final password = _passwordCtrl.text;
 
     setState(() => _isLoading = true);
 
     try {
-      final response = await http.post(
-        Uri.parse('http://10.0.2.2:3000/auth/signup'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'name': _nameCtrl.text.trim(),
-          'email': _emailCtrl.text.trim(),
-          'password': _passwordCtrl.text,
-        }),
-      );
+      final auth = context.read<AuthProvider?>();
+      if (auth != null) {
+        final success = await auth.signup(
+          name: name,
+          email: email,
+          password: password,
+        );
+        if (!mounted) return;
 
-      final data = jsonDecode(response.body);
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Account created successfully!')),
+          );
+          Navigator.pop(context);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(auth.error ?? 'Signup failed'),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+        }
+      } else {
+        // Fallback directly to AuthService
+        final service = AuthService();
+        final result = await service.signup(
+          name: name,
+          email: email,
+          password: password,
+        );
+        if (!mounted) return;
 
-      if (!mounted) return;
-
-      if (response.statusCode == 201) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(data['message'] ?? 'Account created successfully'),
+            content: Text(
+              result['message']?.toString() ?? 'Account created successfully',
+            ),
           ),
         );
-
         Navigator.pop(context);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(data['message'] ?? 'Signup failed')),
-        );
       }
     } catch (e) {
       if (!mounted) return;
-
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unable to connect to the server')),
+        SnackBar(
+          content: Text(e.toString().replaceAll('ApiException: ', '')),
+          backgroundColor: Colors.redAccent,
+        ),
       );
     } finally {
       if (mounted) {
@@ -98,26 +119,36 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                     const SizedBox(height: 12),
                     const Text(
-                      'Create your account',
+                      'Create an account',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w700,
+                        fontSize: 26,
+                        fontWeight: FontWeight.w800,
                         color: AppColors.navy,
                       ),
                     ),
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Join CampusFlow to explore programs & events',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: AppColors.muted),
+                    ),
+                    const SizedBox(height: 24),
                     TextFormField(
                       controller: _nameCtrl,
-                      textCapitalization: TextCapitalization.words,
                       decoration: const InputDecoration(
-                        labelText: 'Name',
+                        labelText: 'Full name',
                         prefixIcon: Icon(Icons.person_outline),
                       ),
-                      validator: (value) =>
-                          value == null || value.trim().isEmpty
-                          ? 'Please enter your name'
-                          : null,
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) {
+                          return 'Please enter your name';
+                        }
+                        if (v.trim().length < 2) {
+                          return 'Name must be at least 2 characters';
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 14),
                     TextFormField(
@@ -127,11 +158,13 @@ class _SignupScreenState extends State<SignupScreen> {
                         labelText: 'Email',
                         prefixIcon: Icon(Icons.mail_outline),
                       ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) {
                           return 'Please enter your email';
                         }
-                        if (!value.contains('@')) return 'Enter a valid email';
+                        if (!v.contains('@') || !v.contains('.')) {
+                          return 'Enter a valid email address';
+                        }
                         return null;
                       },
                     ),
@@ -153,9 +186,15 @@ class _SignupScreenState extends State<SignupScreen> {
                           ),
                         ),
                       ),
-                      validator: (value) => (value == null || value.length < 6)
-                          ? 'Password must be at least 6 characters'
-                          : null,
+                      validator: (v) {
+                        if (v == null || v.isEmpty) {
+                          return 'Please enter a password';
+                        }
+                        if (v.length < 6) {
+                          return 'Password must be at least 6 characters';
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 14),
                     TextFormField(
@@ -176,21 +215,40 @@ class _SignupScreenState extends State<SignupScreen> {
                           ),
                         ),
                       ),
-                      validator: (value) => value != _passwordCtrl.text
-                          ? 'Passwords do not match'
-                          : null,
+                      validator: (v) {
+                        if (v != _passwordCtrl.text) {
+                          return 'Passwords do not match';
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 24),
                     ElevatedButton(
                       onPressed: _isLoading ? null : _signup,
                       child: _isLoading
-                          ? const CircularProgressIndicator()
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
                           : const Text('Create account'),
                     ),
-                    const SizedBox(height: 8),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Already have an account? Log in'),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          'Already have an account?',
+                          style: TextStyle(color: AppColors.muted),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Log in'),
+                        ),
+                      ],
                     ),
                   ],
                 ),

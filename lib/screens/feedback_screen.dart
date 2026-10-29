@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../models/feedback_entry.dart';
 import '../models/program.dart';
+import '../providers/auth_provider.dart';
 import '../providers/program_provider.dart';
 import '../utils/theme.dart';
 
@@ -29,6 +30,20 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   int _rating = 0;
   String? _category;
   bool _ratingError = false;
+  bool _isSubmitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final auth = context.read<AuthProvider?>();
+      if (auth?.user?.email != null && _emailCtrl.text.isEmpty) {
+        setState(() {
+          _emailCtrl.text = auth!.user!.email;
+        });
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -37,26 +52,45 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     final fieldsValid = _formKey.currentState!.validate();
     setState(() => _ratingError = _rating == 0);
-    if (!fieldsValid || _rating == 0) return;
+    if (!fieldsValid || _rating == 0 || _isSubmitting) return;
 
-    context.read<ProgramProvider>().addFeedback(
-          FeedbackEntry(
-            programId: widget.program.id,
-            rating: _rating,
-            category: _category!,
-            email: _emailCtrl.text.trim(),
-            comment: _commentCtrl.text.trim(),
-            submittedAt: DateTime.now(),
+    setState(() => _isSubmitting = true);
+
+    try {
+      await context.read<ProgramProvider>().addFeedback(
+            FeedbackEntry(
+              programId: widget.program.id,
+              rating: _rating,
+              category: _category!,
+              email: _emailCtrl.text.trim(),
+              comment: _commentCtrl.text.trim(),
+              submittedAt: DateTime.now(),
+            ),
+          );
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Thank you for your feedback!')),
+      );
+      Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e.toString().replaceAll('ApiException: ', '').replaceAll('Exception: ', ''),
           ),
-        );
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Thank you for your feedback!')),
-    );
-    Navigator.pop(context);
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
   }
 
   @override
@@ -149,8 +183,17 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
               ),
               const SizedBox(height: 12),
               ElevatedButton(
-                onPressed: _submit,
-                child: const Text('Submit feedback'),
+                onPressed: _isSubmitting ? null : _submit,
+                child: _isSubmitting
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text('Submit feedback'),
               ),
             ],
           ),

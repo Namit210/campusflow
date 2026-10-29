@@ -2,13 +2,29 @@
 // Note: replace "campusflow" below if your Flutter package name is different
 // (see the "name:" line in pubspec.yaml).
 import 'package:campusflow/main.dart';
+import 'package:campusflow/models/program.dart';
+import 'package:campusflow/providers/auth_provider.dart';
 import 'package:campusflow/providers/program_provider.dart';
+import 'package:campusflow/providers/theme_provider.dart';
+import 'package:campusflow/services/program_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
-Widget buildApp() => ChangeNotifierProvider(
-      create: (_) => ProgramProvider(),
+List<Program> testPrograms = [];
+
+Widget buildApp() => MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(
+          create: (_) => ProgramProvider(
+            service: ProgramService(delay: Duration.zero),
+            initialPrograms: testPrograms,
+          ),
+          lazy: false,
+        ),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+      ],
       child: const CampusFlowApp(useGoogleFonts: false),
     );
 
@@ -20,20 +36,12 @@ Future<void> login(WidgetTester tester) async {
 }
 
 void main() {
+  setUpAll(() async {
+    testPrograms = await ProgramService(delay: Duration.zero).fetchPrograms();
+  });
   void phoneSize(WidgetTester tester) {
     tester.view.physicalSize = const Size(1170, 2532);
     tester.view.devicePixelRatio = 3.0;
-    addTearDown(tester.view.reset);
-
-    // Tests draw text with the "Ahem" font (every letter is a wide square),
-    // so rows can falsely report "RenderFlex overflowed". Real devices use
-    // Inter and are fine, so we ignore only those overflow messages here.
-    final original = FlutterError.onError;
-    FlutterError.onError = (details) {
-      if (details.exceptionAsString().contains('overflowed')) return;
-      original?.call(details);
-    };
-    addTearDown(() => FlutterError.onError = original);
   }
 
   testWidgets('Login shows validation errors when empty', (tester) async {
@@ -42,6 +50,7 @@ void main() {
     await tester.tap(find.text('Log in'));
     await tester.pump();
     expect(find.text('Please enter your email'), findsOneWidget);
+    await tester.pumpAndSettle();
   });
 
   testWidgets('Login leads to Home', (tester) async {

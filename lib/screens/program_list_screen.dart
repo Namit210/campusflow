@@ -65,32 +65,49 @@ class ProgramListScreen extends StatelessWidget {
           const SizedBox(height: 8),
           Expanded(
             child: programs.isEmpty
-                ? const Center(
-                    child: Text(
-                      'No programs found',
-                      style: TextStyle(color: AppColors.muted),
-                    ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                    itemCount: programs.length,
-                    itemBuilder: (context, i) {
-                      return Center(
+                ? RefreshIndicator(
+                    onRefresh: provider.loadPrograms,
+                    child: LayoutBuilder(
+                      builder: (context, constraints) => SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
                         child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 760),
-                          child: ProgramCard(
-                            program: programs[i],
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    ProgramDetailsScreen(program: programs[i]),
-                              ),
+                          constraints:
+                              BoxConstraints(minHeight: constraints.maxHeight),
+                          child: const Center(
+                            child: Text(
+                              'No programs found',
+                              style: TextStyle(color: AppColors.muted),
                             ),
                           ),
                         ),
-                      );
-                    },
+                      ),
+                    ),
+                  )
+                : RefreshIndicator(
+                    onRefresh: provider.loadPrograms,
+                    child: ListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                      itemCount: programs.length,
+                      itemBuilder: (context, i) {
+                        return Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 760),
+                            child: ProgramCard(
+                              program: programs[i],
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => ProgramDetailsScreen(
+                                    program: programs[i],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                   ),
           ),
         ],

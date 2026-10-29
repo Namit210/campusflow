@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../models/program.dart';
+import '../models/user_registration.dart';
+import '../providers/auth_provider.dart';
 import '../providers/program_provider.dart';
 import '../utils/context_colors.dart';
 import '../utils/theme.dart';
@@ -37,6 +40,10 @@ class HomeScreen extends StatelessWidget {
     }
 
     final upcoming = provider.allPrograms.take(3).toList();
+    final auth = context.watch<AuthProvider?>();
+    final userName = auth?.user?.name.trim().isNotEmpty == true
+        ? auth!.user!.name.trim().split(' ').first
+        : 'Alex';
 
     return Scaffold(
       appBar: AppBar(
@@ -90,17 +97,19 @@ class HomeScreen extends StatelessWidget {
           const SizedBox(width: 4),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Text(
-            'Good morning, Alex 👋',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w800,
-              color: context.textPrimary,
+      body: RefreshIndicator(
+        onRefresh: provider.syncWithBackend,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            Text(
+              'Good morning, $userName 👋',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w800,
+                color: context.textPrimary,
+              ),
             ),
-          ),
           const SizedBox(height: 4),
           Text(
             "Here's what's happening across your campus.",
@@ -128,18 +137,65 @@ class HomeScreen extends StatelessWidget {
               ),
             ],
           ),
+          if (provider.ongoingRegistrations.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Ongoing Programs',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: context.textPrimary,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppColors.indigo.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    '${provider.ongoingCount} active',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.indigo,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            ...provider.ongoingRegistrations.map((reg) {
+              final prog = reg.program ??
+                  provider.allPrograms.cast<Program?>().firstWhere(
+                        (p) => p?.id == reg.programId,
+                        orElse: () => null,
+                      );
+              if (prog == null) return const SizedBox.shrink();
+              return _OngoingProgramHomeCard(
+                registration: reg,
+                program: prog,
+              );
+            }),
+          ],
           const SizedBox(height: 24),
           Row(
             children: [
-              Text(
-                'Upcoming Events',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: context.textPrimary,
+              Expanded(
+                child: Text(
+                  'Upcoming Events',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: context.textPrimary,
+                  ),
                 ),
               ),
-              const Spacer(),
               TextButton(onPressed: onSeeAll, child: const Text('View all')),
             ],
           ),
@@ -204,7 +260,8 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ),
+  );
   }
 }
 
@@ -248,6 +305,128 @@ class _StatCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _OngoingProgramHomeCard extends StatelessWidget {
+  final UserRegistration registration;
+  final Program program;
+
+  const _OngoingProgramHomeCard({
+    required this.registration,
+    required this.program,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final completedCount = registration.completedModules.length;
+    final totalModules = program.learningPath.length;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: context.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.indigo.withValues(alpha: 0.25)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppColors.lavender.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  program.category,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.navy,
+                  ),
+                ),
+              ),
+              const Spacer(),
+              Text(
+                '${registration.progress}%',
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.indigo,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            program.title,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: context.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: registration.progress / 100,
+              minHeight: 6,
+              backgroundColor: context.isDark
+                  ? const Color(0xFF334155)
+                  : const Color(0xFFE2E8F0),
+              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.indigo),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '$completedCount / $totalModules modules completed',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: context.textMuted,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ProgramDetailsScreen(program: program),
+                    ),
+                  );
+                },
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Continue',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.indigo,
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right,
+                      size: 16,
+                      color: AppColors.indigo,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

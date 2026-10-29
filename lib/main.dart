@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'providers/auth_provider.dart';
 import 'providers/program_provider.dart';
 import 'providers/theme_provider.dart';
 import 'screens/login_screen.dart';
@@ -10,8 +11,9 @@ void main() {
   runApp(
     MultiProvider(
       providers: [
+        // Authentication session & logged in user profile
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
         // Programs, registrations, notifications and feedback.
-        // `lazy: false` starts loading the program data as soon as the app opens.
         ChangeNotifierProvider(create: (_) => ProgramProvider(), lazy: false),
         // Light / dark mode.
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
