@@ -99,7 +99,8 @@ npm start
 npm run dev
 ```
 
-The server binds to `0.0.0.0:3000`, making it immediately accessible to Android emulators (`10.0.2.2:3000`), iOS simulators (`localhost:3000`), desktop builds, and physical devices on the local Wi-Fi.
+- **Deployed Production Service**: `https://campusflow-nq50.onrender.com`
+- **Local Development**: The server binds to `0.0.0.0:3000`, making it accessible to Android emulators (`10.0.2.2:3000`), iOS simulators (`localhost:3000`), desktop builds, and physical devices on the local Wi-Fi.
 
 ### 5. Running Tests
 ```bash

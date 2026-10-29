@@ -4,8 +4,10 @@ info:
   version: 1.0.0
   description: Backend for the CampusFlow Flutter app. Send JWTs as Authorization Bearer tokens.
 servers:
+  - url: https://campusflow-nq50.onrender.com
+    description: Production (Render)
   - url: http://localhost:3000
-    description: Local
+    description: Local development
 paths:
   /health:
     get:

@@ -53,14 +53,22 @@ class _MyProgramsScreenState extends State<MyProgramsScreen>
           unselectedLabelColor: context.textMuted,
           indicatorColor: AppColors.indigo,
           indicatorWeight: 3,
+          labelPadding: const EdgeInsets.symmetric(horizontal: 4),
           tabs: [
             Tab(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text('Ongoing'),
+                  const Flexible(
+                    child: Text(
+                      'Ongoing',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                   if (ongoing.isNotEmpty) ...[
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 4),
                     _BadgeCount(count: ongoing.length, color: AppColors.indigo),
                   ],
                 ],
@@ -69,10 +77,17 @@ class _MyProgramsScreenState extends State<MyProgramsScreen>
             Tab(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text('Completed'),
+                  const Flexible(
+                    child: Text(
+                      'Completed',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                   if (completed.isNotEmpty) ...[
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 4),
                     _BadgeCount(
                       count: completed.length,
                       color: const Color(0xFF059669),
@@ -84,10 +99,17 @@ class _MyProgramsScreenState extends State<MyProgramsScreen>
             Tab(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text('All'),
+                  const Flexible(
+                    child: Text(
+                      'All',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                   if (all.isNotEmpty) ...[
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 4),
                     _BadgeCount(count: all.length, color: AppColors.dateAccent),
                   ],
                 ],
@@ -148,16 +170,16 @@ class _BadgeCount extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
         '$count',
         style: TextStyle(
           color: color,
-          fontSize: 11,
+          fontSize: 10,
           fontWeight: FontWeight.w700,
         ),
       ),
@@ -179,35 +201,40 @@ class _SummaryHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
       decoration: BoxDecoration(
         color: context.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: context.borderColor),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _StatColumn(
-            label: 'Ongoing',
-            value: '$ongoingCount',
-            color: AppColors.indigo,
-            icon: Icons.play_circle_outline,
+          Expanded(
+            child: _StatColumn(
+              label: 'Ongoing',
+              value: '$ongoingCount',
+              color: AppColors.indigo,
+              icon: Icons.play_circle_outline,
+            ),
           ),
-          Container(width: 1, height: 36, color: context.borderColor),
-          _StatColumn(
-            label: 'Completed',
-            value: '$completedCount',
-            color: const Color(0xFF059669),
-            icon: Icons.check_circle_outline,
+          Container(width: 1, height: 32, color: context.borderColor),
+          Expanded(
+            child: _StatColumn(
+              label: 'Completed',
+              value: '$completedCount',
+              color: const Color(0xFF059669),
+              icon: Icons.check_circle_outline,
+            ),
           ),
-          Container(width: 1, height: 36, color: context.borderColor),
-          _StatColumn(
-            label: 'Avg. Progress',
-            value: '$avgProgress%',
-            color: const Color(0xFFD97706),
-            icon: Icons.donut_large_outlined,
+          Container(width: 1, height: 32, color: context.borderColor),
+          Expanded(
+            child: _StatColumn(
+              label: 'Avg. Progress',
+              value: '$avgProgress%',
+              color: const Color(0xFFD97706),
+              icon: Icons.donut_large_outlined,
+            ),
           ),
         ],
       ),
@@ -234,24 +261,27 @@ class _StatColumn extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 16, color: color),
-            const SizedBox(width: 5),
+            Icon(icon, size: 15, color: color),
+            const SizedBox(width: 4),
             Text(
               value,
               style: TextStyle(
-                fontSize: 18,
+                fontSize: 16,
                 fontWeight: FontWeight.w800,
                 color: context.textPrimary,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 3),
+        const SizedBox(height: 2),
         Text(
           label,
-          style: TextStyle(fontSize: 12, color: context.textMuted),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(fontSize: 11, color: context.textMuted),
         ),
       ],
     );
@@ -487,19 +517,31 @@ class _LearningProgramCard extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    '$completedCount of $totalModules modules completed',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: context.textMuted,
+                  Flexible(
+                    flex: 3,
+                    child: Text(
+                      '$completedCount of $totalModules modules completed',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: context.textMuted,
+                      ),
                     ),
                   ),
-                  Text(
-                    program.date,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: context.textMuted,
+                  const SizedBox(width: 8),
+                  Flexible(
+                    flex: 2,
+                    child: Text(
+                      program.date,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.end,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: context.textMuted,
+                      ),
                     ),
                   ),
                 ],

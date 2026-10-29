@@ -1,7 +1,5 @@
 import 'dart:convert';
-import 'dart:io' show Platform;
 
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 
 /// Custom exception thrown by ApiClient when network or HTTP error occurs.
@@ -27,18 +25,19 @@ class ApiClient {
   factory ApiClient() => instance;
   ApiClient._internal();
 
-  /// Default API base URL detecting Android emulator vs Desktop/Web/iOS.
+  /// Production base URL deployed on Render.
+  static const String productionBaseUrl =
+      'https://campusflow-nq50.onrender.com';
+
+  /// Default timeout for HTTP requests (30s to allow for Render service cold starts).
+  static const Duration requestTimeout = Duration(seconds: 30);
+
+  /// Default API base URL pointing to the deployed Render service everywhere.
+  /// Can be overridden at compile-time via `--dart-define=API_BASE_URL=url`.
   static String get defaultBaseUrl {
     const fromEnv = String.fromEnvironment('API_BASE_URL');
     if (fromEnv.isNotEmpty) return fromEnv;
-
-    if (kIsWeb) return 'http://localhost:3000';
-    try {
-      if (Platform.isAndroid) return 'http://10.0.2.2:3000';
-    } catch (_) {
-      // Platform check may throw on web if not guarded
-    }
-    return 'http://localhost:3000';
+    return productionBaseUrl;
   }
 
   String _baseUrl = defaultBaseUrl;
@@ -89,7 +88,7 @@ class ApiClient {
       final uri = _buildUri(path, queryParams);
       final response = await http
           .get(uri, headers: _buildHeaders())
-          .timeout(const Duration(seconds: 10));
+          .timeout(requestTimeout);
       return _handleResponse(response);
     } catch (e) {
       _handleError(e);
@@ -103,7 +102,7 @@ class ApiClient {
       final encodedBody = body != null ? jsonEncode(body) : null;
       final response = await http
           .post(uri, headers: _buildHeaders(), body: encodedBody)
-          .timeout(const Duration(seconds: 10));
+          .timeout(requestTimeout);
       return _handleResponse(response);
     } catch (e) {
       _handleError(e);
@@ -117,7 +116,7 @@ class ApiClient {
       final encodedBody = body != null ? jsonEncode(body) : null;
       final response = await http
           .put(uri, headers: _buildHeaders(), body: encodedBody)
-          .timeout(const Duration(seconds: 10));
+          .timeout(requestTimeout);
       return _handleResponse(response);
     } catch (e) {
       _handleError(e);
@@ -131,7 +130,7 @@ class ApiClient {
       final encodedBody = body != null ? jsonEncode(body) : null;
       final response = await http
           .patch(uri, headers: _buildHeaders(), body: encodedBody)
-          .timeout(const Duration(seconds: 10));
+          .timeout(requestTimeout);
       return _handleResponse(response);
     } catch (e) {
       _handleError(e);
@@ -144,7 +143,7 @@ class ApiClient {
       final uri = _buildUri(path);
       final response = await http
           .delete(uri, headers: _buildHeaders())
-          .timeout(const Duration(seconds: 10));
+          .timeout(requestTimeout);
       return _handleResponse(response);
     } catch (e) {
       _handleError(e);

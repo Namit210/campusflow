@@ -15,16 +15,16 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('ApiClient Unit Tests', () {
-    test('defaultBaseUrl returns valid HTTP URL', () {
+    test('defaultBaseUrl points to deployed production Render service', () {
       final url = ApiClient.defaultBaseUrl;
-      expect(url.startsWith('http://'), true);
-      expect(url.contains('3000'), true);
+      expect(url, 'https://campusflow-nq50.onrender.com');
+      expect(url.startsWith('https://'), true);
     });
 
     test('setBaseUrl updates URL and trims trailing slash', () {
       final client = ApiClient();
-      client.setBaseUrl('http://192.168.1.50:3000/');
-      expect(client.baseUrl, 'http://192.168.1.50:3000');
+      client.setBaseUrl('https://custom-domain.com/api/');
+      expect(client.baseUrl, 'https://custom-domain.com/api');
 
       // Reset back to default
       client.setBaseUrl(ApiClient.defaultBaseUrl);
