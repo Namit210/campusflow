@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../providers/auth_provider.dart';
 import '../providers/program_provider.dart';
 import '../utils/context_colors.dart';
 import '../utils/theme.dart';
@@ -94,7 +95,7 @@ class HomeScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         children: [
           Text(
-            'Good morning, Alex 👋',
+            'Good morning, ${context.watch<AuthProvider>().user?.name ?? 'there'} 👋',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w800,

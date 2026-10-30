@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../utils/context_colors.dart';
 import '../utils/theme.dart';
 
 class LoadingView extends StatelessWidget {
@@ -7,14 +8,14 @@ class LoadingView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           CircularProgressIndicator(color: AppColors.indigo),
           SizedBox(height: 16),
           Text('Loading programs...',
-              style: TextStyle(color: AppColors.muted)),
+              style: TextStyle(color: context.textMuted)),
         ],
       ),
     );
@@ -31,28 +32,28 @@ class ErrorView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline, size: 56, color: Colors.redAccent),
-            const SizedBox(height: 12),
-            const Text('Something went wrong',
+            Icon(Icons.error_outline, size: 56, color: Colors.redAccent),
+            SizedBox(height: 12),
+            Text('Something went wrong',
                 style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.navy)),
-            const SizedBox(height: 6),
+                    color: context.textPrimary)),
+            SizedBox(height: 6),
             Text(message,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: AppColors.muted)),
-            const SizedBox(height: 20),
+                style: TextStyle(color: context.textMuted)),
+            SizedBox(height: 20),
             ElevatedButton.icon(
               onPressed: onRetry,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
+              icon: Icon(Icons.refresh),
+              label: Text('Retry'),
               style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(140, 48)),
+                  minimumSize: Size(140, 48)),
             ),
           ],
         ),

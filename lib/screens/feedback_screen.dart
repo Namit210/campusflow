@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/feedback_entry.dart';
 import '../models/program.dart';
 import '../providers/program_provider.dart';
+import '../utils/context_colors.dart';
 import '../utils/theme.dart';
 
 class FeedbackScreen extends StatefulWidget {
@@ -54,7 +55,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
         );
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Thank you for your feedback!')),
+      SnackBar(content: Text('Thank you for your feedback!')),
     );
     Navigator.pop(context);
   }
@@ -63,25 +64,25 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Feedback',
+        title: Text('Feedback',
             style: TextStyle(fontWeight: FontWeight.w800)),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(20),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(widget.program.title,
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
-                      color: AppColors.navy)),
-              const SizedBox(height: 4),
-              const Text('How was your experience?',
-                  style: TextStyle(color: AppColors.muted)),
-              const SizedBox(height: 16),
+                      color: context.textPrimary)),
+              SizedBox(height: 4),
+              Text('How was your experience?',
+                  style: TextStyle(color: context.textMuted)),
+              SizedBox(height: 16),
               Row(
                 children: List.generate(5, (i) {
                   final filled = i < _rating;
@@ -94,31 +95,31 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                     }),
                     icon: Icon(
                       filled ? Icons.star : Icons.star_border,
-                      color: filled ? Colors.amber : AppColors.muted,
+                      color: filled ? Colors.amber : context.textMuted,
                     ),
                   );
                 }),
               ),
               if (_ratingError)
-                const Padding(
+                Padding(
                   padding: EdgeInsets.only(top: 4),
                   child: Text('Please select a rating',
                       style: TextStyle(color: Colors.red, fontSize: 12)),
                 ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                decoration: const InputDecoration(labelText: 'What is this about?'),
+                decoration: InputDecoration(labelText: 'What is this about?'),
                 items: _categories
                     .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                     .toList(),
                 onChanged: (v) => setState(() => _category = v),
                 validator: (v) => v == null ? 'Please choose a category' : null,
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               TextFormField(
                 controller: _emailCtrl,
                 keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Email',
                   prefixIcon: Icon(Icons.mail_outline),
                 ),
@@ -129,12 +130,12 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                   return ok ? null : 'Enter a valid email address';
                 },
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               TextFormField(
                 controller: _commentCtrl,
                 maxLines: 4,
                 maxLength: 300,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Your feedback',
                   alignLabelWithHint: true,
                 ),
@@ -147,10 +148,10 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               ElevatedButton(
                 onPressed: _submit,
-                child: const Text('Submit feedback'),
+                child: Text('Submit feedback'),
               ),
             ],
           ),

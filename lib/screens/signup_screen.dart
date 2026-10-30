@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import '../utils/theme.dart';
+import 'package:provider/provider.dart';
+
+import '../providers/auth_provider.dart';
+import '../utils/context_colors.dart';
+import '../utils/validators.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -15,109 +17,72 @@ class _SignupScreenState extends State<SignupScreen> {
   final _nameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
-  final _confirmPasswordCtrl = TextEditingController();
-  bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
+  final _confirmCtrl = TextEditingController();
+  bool _obscure = true;
 
   @override
   void dispose() {
     _nameCtrl.dispose();
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
-    _confirmPasswordCtrl.dispose();
+    _confirmCtrl.dispose();
     super.dispose();
   }
 
-  bool _isLoading = false;
-
-  Future<void> _signup() async {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-
-    setState(() => _isLoading = true);
-
-    try {
-      final response = await http.post(
-        Uri.parse('http://10.0.2.2:3000/auth/signup'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'name': _nameCtrl.text.trim(),
-          'email': _emailCtrl.text.trim(),
-          'password': _passwordCtrl.text,
-        }),
-      );
-
-      final data = jsonDecode(response.body);
-
-      if (!mounted) return;
-
-      if (response.statusCode == 201) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(data['message'] ?? 'Account created successfully'),
-          ),
-        );
-
-        Navigator.pop(context);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(data['message'] ?? 'Signup failed')),
-        );
-      }
-    } catch (e) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unable to connect to the server')),
-      );
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+    FocusScope.of(context).unfocus();
+    final auth = context.read<AuthProvider>();
+    final ok = await auth.signup(
+      _nameCtrl.text.trim(),
+      _emailCtrl.text.trim(),
+      _passwordCtrl.text,
+    );
+    if (ok && mounted) {
+      // Go back to the root; AuthGate now shows the Home screen.
+      Navigator.of(context).popUntil((route) => route.isFirst);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Sign up')),
+      appBar: AppBar(
+        title: const Text('Create account',
+            style: TextStyle(fontWeight: FontWeight.w800)),
+      ),
       body: SafeArea(
         child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 460),
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 440),
               child: Form(
                 key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Icon(
-                      Icons.school_rounded,
-                      size: 64,
-                      color: AppColors.indigo,
+                    Text(
+                      'Join CampusFlow to discover programs and events.',
+                      style: TextStyle(color: context.textMuted),
                     ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Create your account',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navy,
+                    const SizedBox(height: 20),
+                    if (auth.error != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 14),
+                        child: Text(auth.error!,
+                            style: const TextStyle(color: Colors.redAccent)),
                       ),
-                    ),
-                    const SizedBox(height: 28),
                     TextFormField(
                       controller: _nameCtrl,
                       textCapitalization: TextCapitalization.words,
                       decoration: const InputDecoration(
-                        labelText: 'Name',
+                        labelText: 'Full name',
                         prefixIcon: Icon(Icons.person_outline),
                       ),
-                      validator: (value) =>
-                          value == null || value.trim().isEmpty
-                          ? 'Please enter your name'
-                          : null,
+                      validator: Validators.name,
                     ),
                     const SizedBox(height: 14),
                     TextFormField(
@@ -127,70 +92,59 @@ class _SignupScreenState extends State<SignupScreen> {
                         labelText: 'Email',
                         prefixIcon: Icon(Icons.mail_outline),
                       ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Please enter your email';
-                        }
-                        if (!value.contains('@')) return 'Enter a valid email';
-                        return null;
-                      },
+                      validator: Validators.email,
                     ),
                     const SizedBox(height: 14),
                     TextFormField(
                       controller: _passwordCtrl,
-                      obscureText: _obscurePassword,
+                      obscureText: _obscure,
                       decoration: InputDecoration(
                         labelText: 'Password',
                         prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
-                          ),
-                          onPressed: () => setState(
-                            () => _obscurePassword = !_obscurePassword,
-                          ),
+                          icon: Icon(_obscure
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined),
+                          onPressed: () => setState(() => _obscure = !_obscure),
                         ),
                       ),
-                      validator: (value) => (value == null || value.length < 6)
-                          ? 'Password must be at least 6 characters'
-                          : null,
+                      validator: Validators.password,
                     ),
                     const SizedBox(height: 14),
                     TextFormField(
-                      controller: _confirmPasswordCtrl,
-                      obscureText: _obscureConfirmPassword,
-                      decoration: InputDecoration(
+                      controller: _confirmCtrl,
+                      obscureText: _obscure,
+                      onFieldSubmitted: (_) => _submit(),
+                      decoration: const InputDecoration(
                         labelText: 'Confirm password',
-                        prefixIcon: const Icon(Icons.lock_outline),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscureConfirmPassword
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
-                          ),
-                          onPressed: () => setState(
-                            () => _obscureConfirmPassword =
-                                !_obscureConfirmPassword,
-                          ),
-                        ),
+                        prefixIcon: Icon(Icons.lock_outline),
                       ),
-                      validator: (value) => value != _passwordCtrl.text
-                          ? 'Passwords do not match'
-                          : null,
+                      validator: (v) =>
+                          Validators.confirmPassword(v, _passwordCtrl.text),
                     ),
                     const SizedBox(height: 24),
                     ElevatedButton(
-                      onPressed: _isLoading ? null : _signup,
-                      child: _isLoading
-                          ? const CircularProgressIndicator()
+                      onPressed: auth.isBusy ? null : _submit,
+                      child: auth.isBusy
+                          ? const SizedBox(
+                              height: 22,
+                              width: 22,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2.5, color: Colors.white),
+                            )
                           : const Text('Create account'),
                     ),
-                    const SizedBox(height: 8),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Already have an account? Log in'),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text('Already have an account?',
+                            style: TextStyle(color: context.textMuted)),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Log in'),
+                        ),
+                      ],
                     ),
                   ],
                 ),

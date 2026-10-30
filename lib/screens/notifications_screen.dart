@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../models/app_notification.dart';
 import '../providers/program_provider.dart';
+import '../utils/context_colors.dart';
 import '../utils/theme.dart';
 
 class NotificationsScreen extends StatelessWidget {
@@ -26,8 +27,9 @@ class NotificationsScreen extends StatelessWidget {
             ),
           ],
           bottom: TabBar(
-            labelColor: AppColors.indigo,
-            indicatorColor: AppColors.indigo,
+            labelColor: context.accent,
+            unselectedLabelColor: context.textMuted,
+            indicatorColor: context.accent,
             tabs: [
               const Tab(text: 'All'),
               Tab(text: 'Unread (${provider.unreadCount})'),
@@ -54,8 +56,8 @@ class _NotificationList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (items.isEmpty) {
-      return const Center(
-        child: Text('Nothing here', style: TextStyle(color: AppColors.muted)),
+      return Center(
+        child: Text('Nothing here', style: TextStyle(color: context.textMuted)),
       );
     }
     return ListView.builder(
@@ -69,9 +71,9 @@ class _NotificationList extends StatelessWidget {
             margin: const EdgeInsets.only(bottom: 10),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: n.read ? Colors.white : const Color(0xFFEEF2FF),
+              color: n.read ? context.surface : context.tint,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(color: context.borderColor),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -86,17 +88,17 @@ class _NotificationList extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(n.title,
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontWeight: FontWeight.w700,
-                              color: AppColors.navy)),
+                              color: context.textPrimary)),
                       const SizedBox(height: 2),
                       Text(n.message,
-                          style: const TextStyle(
-                              fontSize: 13, color: AppColors.muted)),
+                          style: TextStyle(
+                              fontSize: 13, color: context.textMuted)),
                       const SizedBox(height: 4),
                       Text(n.timeAgo,
-                          style: const TextStyle(
-                              fontSize: 11, color: AppColors.muted)),
+                          style: TextStyle(
+                              fontSize: 11, color: context.textMuted)),
                     ],
                   ),
                 ),

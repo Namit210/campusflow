@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import '../utils/theme.dart';
-import 'home_screen.dart';
-import 'login_screen.dart';
-import 'program_list_screen.dart';
+import '../config/api_config.dart';
+import '../providers/program_provider.dart';
 import '../utils/context_colors.dart';
+import '../utils/theme.dart';
+import 'events_screen.dart';
+import 'home_screen.dart';
+import 'profile_screen.dart';
+import 'program_list_screen.dart';
 
-/// Holds the bottom navigation: Home · Programs · Events · Profile
+/// Bottom navigation: Home · Programs · Events · Profile
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
 
@@ -18,12 +22,23 @@ class _MainShellState extends State<MainShell> {
   int _index = 0;
 
   @override
+  void initState() {
+    super.initState();
+    // With the live backend, reload programs after login so the token is used.
+    if (ApiConfig.useApi) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) context.read<ProgramProvider>().loadPrograms();
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final pages = [
       HomeScreen(onSeeAll: () => setState(() => _index = 1)),
       const ProgramListScreen(),
-      const _PlaceholderScreen(title: 'Events', icon: Icons.event_outlined),
-      const _ProfileScreen(),
+      const EventsScreen(),
+      const ProfileScreen(),
     ];
 
     return Scaffold(
@@ -31,12 +46,9 @@ class _MainShellState extends State<MainShell> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
         backgroundColor: context.surface,
-        indicatorColor: context.isDark ? AppColors.indigo.withValues(alpha: 0.48) : AppColors.lavender,
-        indicatorShape: const StadiumBorder(),
-        elevation: 2,
-        labelTextStyle: const WidgetStatePropertyAll(
-          TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-        ),
+        indicatorColor: context.isDark
+            ? AppColors.indigo.withValues(alpha: 0.45)
+            : AppColors.lavender,
         onDestinationSelected: (i) => setState(() => _index = i),
         destinations: const [
           NavigationDestination(
@@ -60,82 +72,6 @@ class _MainShellState extends State<MainShell> {
             label: 'Profile',
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _PlaceholderScreen extends StatelessWidget {
-  final String title;
-  final IconData icon;
-  const _PlaceholderScreen({required this.title, required this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 56, color: AppColors.lavender),
-            const SizedBox(height: 12),
-            Text(
-              '$title coming soon',
-              style: const TextStyle(color: AppColors.muted),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ProfileScreen extends StatelessWidget {
-  const _ProfileScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            const SizedBox(height: 12),
-            const CircleAvatar(
-              radius: 44,
-              backgroundColor: AppColors.navy,
-              child: Text(
-                'A',
-                style: TextStyle(fontSize: 36, color: Colors.white),
-              ),
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'Alex',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-                color: AppColors.navy,
-              ),
-            ),
-            const Text('Learner', style: TextStyle(color: AppColors.muted)),
-            const Spacer(),
-            OutlinedButton.icon(
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size.fromHeight(50),
-              ),
-              icon: const Icon(Icons.logout),
-              label: const Text('Log out'),
-              onPressed: () => Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
-                (route) => false,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
