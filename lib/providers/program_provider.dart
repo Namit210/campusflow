@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../models/app_notification.dart';
@@ -101,6 +103,23 @@ class ProgramProvider extends ChangeNotifier {
   String _query = '';
 
   List<Program> get allPrograms => _programs;
+
+  /// Programs the learner has registered for.
+  List<Program> get registeredPrograms =>
+      _programs.where((p) => _registeredIds.contains(p.id)).toList();
+
+  /// All programs ordered by how soon they start.
+  List<Program> get upcomingPrograms => List<Program>.of(_programs)
+    ..sort((a, b) => a.startsInDays.compareTo(b.startsInDays));
+
+  int get feedbackCount => _feedback.length;
+
+  /// Resets the search box and category filter.
+  void clearFilters() {
+    _selectedCategory = 'All';
+    _query = '';
+    notifyListeners();
+  }
   String get selectedCategory => _selectedCategory;
 
   List<Program> get filteredPrograms {
@@ -119,6 +138,9 @@ class ProgramProvider extends ChangeNotifier {
 
   void addFeedback(FeedbackEntry entry) {
     _feedback.add(entry);
+    unawaited(_service.submitFeedback(entry).catchError((Object e) {
+      debugPrint('Feedback not synced: $e');
+    }));
     notifyListeners();
   }
 
@@ -169,6 +191,9 @@ class ProgramProvider extends ChangeNotifier {
   void register(Program p) {
     if (!isRegistered(p.id) && spotsLeft(p) > 0) {
       _registeredIds.add(p.id);
+      unawaited(_service.submitRegistration(p.id).catchError((Object e) {
+        debugPrint('Registration not synced: $e');
+      }));
       _notifications.insert(
         0,
         AppNotification(
