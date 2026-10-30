@@ -5,11 +5,14 @@ import 'dart:io';
 
 import 'package:campusflow/main.dart';
 import 'package:campusflow/models/program.dart';
+import 'package:campusflow/providers/auth_provider.dart';
 import 'package:campusflow/providers/program_provider.dart';
 import 'package:campusflow/providers/theme_provider.dart';
-import 'package:campusflow/widgets/hover_card.dart';
 import 'package:campusflow/screens/feedback_screen.dart';
+import 'package:campusflow/services/auth_service.dart';
 import 'package:campusflow/services/program_service.dart';
+import 'package:campusflow/services/session_storage.dart';
+import 'package:campusflow/widgets/hover_card.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -22,19 +25,36 @@ ProgramService testService() => ProgramService(
           File('assets/data/programs.json').readAsStringSync(),
     );
 
+AuthProvider testAuth([SessionStorage? storage]) => AuthProvider(
+      service: const MockAuthService(delay: Duration.zero),
+      storage: storage ?? MemorySessionStorage(),
+    );
+
 Widget buildApp() => MultiProvider(
       providers: [
         ChangeNotifierProvider(
             create: (_) => ProgramProvider(service: testService())),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => testAuth()),
       ],
       child: const CampusFlowApp(useGoogleFonts: false),
     );
+
+Future<void> pumpApp(WidgetTester tester) async {
+  await tester.pumpWidget(buildApp());
+  await tester.pumpAndSettle();
+}
 
 Future<void> login(WidgetTester tester) async {
   await tester.enterText(find.byType(TextFormField).at(0), 'alex@test.com');
   await tester.enterText(find.byType(TextFormField).at(1), '123456');
   await tester.tap(find.text('Log in'));
+  await tester.pumpAndSettle();
+}
+
+Future<void> openTab(WidgetTester tester, String label) async {
+  await tester.tap(find.descendant(
+      of: find.byType(NavigationBar), matching: find.text(label)));
   await tester.pumpAndSettle();
 }
 
@@ -69,6 +89,18 @@ void main() {
       expect(p.fee, 'Free');
     });
 
+    test('Program.fromJson accepts backend-style field names', () {
+      final p = Program.fromJson(const {
+        '_id': 'abc',
+        'name': 'Backend Program',
+        'description': 'From the API',
+        'category': 'Career',
+      });
+      expect(p.id, 'abc');
+      expect(p.title, 'Backend Program');
+      expect(p.about, 'From the API');
+    });
+
     test('provider exposes an error when loading fails', () async {
       final provider = ProgramProvider(
         service: ProgramService(
@@ -83,31 +115,83 @@ void main() {
     });
   });
 
+  group('Authentication', () {
+    test('valid login signs the user in', () async {
+      final auth = testAuth();
+      await auth.ready;
+      expect(await auth.login('alex@test.com', '123456'), isTrue);
+      expect(auth.isLoggedIn, isTrue);
+      expect(auth.user!.email, 'alex@test.com');
+      expect(auth.user!.name, 'Alex');
+    });
+
+    test('invalid login shows an error', () async {
+      final auth = testAuth();
+      await auth.ready;
+      expect(await auth.login('nope', '1'), isFalse);
+      expect(auth.isLoggedIn, isFalse);
+      expect(auth.error, isNotNull);
+    });
+
+    test('signup signs the user in with the chosen name', () async {
+      final auth = testAuth();
+      await auth.ready;
+      expect(await auth.signup('Sam Lee', 'sam@test.com', 'secret1'), isTrue);
+      expect(auth.user!.name, 'Sam Lee');
+    });
+
+    test('logout clears the session', () async {
+      final auth = testAuth();
+      await auth.ready;
+      await auth.login('alex@test.com', '123456');
+      await auth.logout();
+      expect(auth.isLoggedIn, isFalse);
+    });
+
+    test('a saved session is restored on start', () async {
+      final storage = MemorySessionStorage();
+      await storage.save(token: 't', name: 'Alex', email: 'alex@test.com');
+      final auth = testAuth(storage);
+      await auth.ready;
+      expect(auth.isLoggedIn, isTrue);
+    });
+  });
+
   group('App flow', () {
     testWidgets('Login shows validation errors when empty', (tester) async {
       phoneSize(tester);
-      await tester.pumpWidget(buildApp());
+      await pumpApp(tester);
       await tester.tap(find.text('Log in'));
       await tester.pump();
       expect(find.text('Please enter your email'), findsOneWidget);
+      expect(find.text('Please enter your password'), findsOneWidget);
     });
 
-    testWidgets('Login leads to Home with data from JSON', (tester) async {
+    testWidgets('Signup validates its fields', (tester) async {
       phoneSize(tester);
-      await tester.pumpWidget(buildApp());
+      await pumpApp(tester);
+      await tester.tap(find.text('Sign up'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Create account').last);
+      await tester.pump();
+      expect(find.text('Please enter your name'), findsOneWidget);
+      expect(find.text('Please enter your email'), findsOneWidget);
+    });
+
+    testWidgets('Login leads to Home with the user name', (tester) async {
+      phoneSize(tester);
+      await pumpApp(tester);
       await login(tester);
       expect(find.text('Upcoming Events'), findsOneWidget);
+      expect(find.textContaining('Good morning, Alex'), findsOneWidget);
     });
 
     testWidgets('Programs -> Details -> Register -> Confirmation',
         (tester) async {
       phoneSize(tester);
-      await tester.pumpWidget(buildApp());
+      await pumpApp(tester);
       await login(tester);
-
-      await tester.tap(find.descendant(
-          of: find.byType(NavigationBar), matching: find.text('Programs')));
-      await tester.pumpAndSettle();
+      await openTab(tester, 'Programs');
 
       await tester.tap(find.text('Design Thinking Workshop'));
       await tester.pumpAndSettle();
@@ -118,20 +202,65 @@ void main() {
       expect(find.text('Registration confirmed'), findsOneWidget);
     });
 
+    testWidgets('Registered event appears on the Events tab', (tester) async {
+      phoneSize(tester);
+      await pumpApp(tester);
+      await login(tester);
+      await openTab(tester, 'Programs');
+      await tester.tap(find.text('Design Thinking Workshop'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Register'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Back to programs'));
+      await tester.pumpAndSettle();
+
+      await openTab(tester, 'Events');
+      expect(find.text('My registrations'), findsOneWidget);
+      expect(find.text('Design Thinking Workshop'), findsWidgets);
+    });
+
+    testWidgets('Programs search with no match shows the empty state',
+        (tester) async {
+      phoneSize(tester);
+      await pumpApp(tester);
+      await login(tester);
+      await openTab(tester, 'Programs');
+
+      await tester.enterText(find.byType(TextField), 'zzzz');
+      await tester.pumpAndSettle();
+      expect(find.text('No programs found'), findsOneWidget);
+
+      await tester.tap(find.text('Clear filters'));
+      await tester.pumpAndSettle();
+      expect(find.text('No programs found'), findsNothing);
+    });
+
     testWidgets('Home bell opens Notifications with 3 unread', (tester) async {
       phoneSize(tester);
-      await tester.pumpWidget(buildApp());
+      await pumpApp(tester);
       await login(tester);
 
       await tester.tap(find.byIcon(Icons.notifications_outlined));
       await tester.pumpAndSettle();
       expect(find.text('Unread (3)'), findsOneWidget);
     });
+
+    testWidgets('Profile log out returns to Login', (tester) async {
+      phoneSize(tester);
+      await pumpApp(tester);
+      await login(tester);
+      await openTab(tester, 'Profile');
+
+      await tester.tap(find.text('Log out'));
+      await tester.pumpAndSettle();
+      expect(find.text('Welcome back'), findsOneWidget);
+    });
   });
 
   group('Feedback form', () {
     Widget feedbackApp() {
-      final program = Program.fromJson(const {'id': 't1', 'title': 'Test Program'});
+      final program =
+          Program.fromJson(const {'id': 't1', 'title': 'Test Program'});
       return ChangeNotifierProvider(
         create: (_) => ProgramProvider(service: testService()),
         child: MaterialApp(
@@ -238,7 +367,8 @@ void main() {
       await gesture.moveTo(tester.getCenter(find.text('card')));
       await tester.pumpAndSettle();
 
-      final scale = tester.widget<AnimatedScale>(find.byType(AnimatedScale)).scale;
+      final scale =
+          tester.widget<AnimatedScale>(find.byType(AnimatedScale)).scale;
       expect(scale, greaterThan(1.0));
     });
   });
