@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../config/api_config.dart';
 import '../providers/auth_provider.dart';
 import '../utils/context_colors.dart';
-import '../utils/theme.dart';
+
 import '../utils/validators.dart';
 import 'signup_screen.dart';
 

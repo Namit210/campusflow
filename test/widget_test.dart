@@ -167,16 +167,34 @@ void main() {
       expect(find.text('Please enter your password'), findsOneWidget);
     });
 
-    testWidgets('Signup validates its fields', (tester) async {
-      phoneSize(tester);
-      await pumpApp(tester);
-      await tester.tap(find.text('Sign up'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Create account').last);
-      await tester.pump();
-      expect(find.text('Please enter your name'), findsOneWidget);
-      expect(find.text('Please enter your email'), findsOneWidget);
-    });
+    
+  testWidgets('Signup validates its fields', (tester) async {
+  phoneSize(tester);
+  await pumpApp(tester);
+
+  await tester.tap(find.text('Sign up'));
+  await tester.pumpAndSettle();
+
+  expect(find.text('Full name'), findsOneWidget);
+
+  final button = find.widgetWithText(
+    ElevatedButton,
+    'Create account',
+  );
+
+  expect(button, findsOneWidget);
+
+  await tester.ensureVisible(button);
+  await tester.tap(button);
+  await tester.pump();
+
+  // Print what Flutter finds after validation.
+  debugDumpApp();
+
+  expect(find.text('Please enter your name'), findsOneWidget);
+  expect(find.text('Please enter your email'), findsOneWidget);
+});
+
 
     testWidgets('Login leads to Home with the user name', (tester) async {
       phoneSize(tester);
