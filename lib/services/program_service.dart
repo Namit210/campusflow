@@ -1,27 +1,34 @@
 import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+import '../config/api_config.dart';
 import '../models/feedback_entry.dart';
 import '../models/program.dart';
-import '../models/user_registration.dart';
 import 'api_client.dart';
 
-/// Handles fetching and updating programs, event registrations, and feedback.
-/// Prioritizes calling the real backend Express API, while providing a seamless
-/// local asset fallback for offline reliability.
+/// Loads programs from the backend (when USE_API=true) or from the local
+/// JSON file. If the backend cannot be reached, the local JSON is used so the
+/// app still works.
 class ProgramService {
   final ApiClient _api;
   final Future<String> Function() _loader;
+  final ApiClient? _api;
 
   /// Optional delay used in UI previews or unit tests.
   final Duration delay;
 
+  /// True when the last load came from the local JSON file.
+  bool usedLocalData = true;
+
   ProgramService({
     ApiClient? api,
     Future<String> Function()? loader,
-    this.delay = Duration.zero,
-  })  : _api = api ?? ApiClient.instance,
-        _loader = loader ?? _defaultLoader;
+    ApiClient? api,
+    this.delay = const Duration(milliseconds: 800),
+  })  : _loader = loader ?? _defaultLoader,
+        _api = api;
 
   static Future<String> _defaultLoader() =>
       rootBundle.loadString('assets/data/programs.json');
@@ -34,32 +41,29 @@ class ProgramService {
     if (delay > Duration.zero) {
       await Future.delayed(delay);
     }
-
-    // Try live API first
-    try {
-      final queryParams = <String, dynamic>{};
-      if (category != null && category != 'All') queryParams['category'] = category;
-      if (query != null && query.isNotEmpty) queryParams['q'] = query;
-
-      final dynamic response = await _api.get('/programs', queryParams: queryParams);
-      if (response is List) {
-        return response
-            .map((e) => Program.fromJson(e as Map<String, dynamic>))
-            .toList();
+    final api = _api;
+    if (ApiConfig.useApi && api != null) {
+      try {
+        final data = await api.get(ApiConfig.programsPath);
+        final programs = _parse(_extractList(data));
+        if (programs.isNotEmpty) {
+          usedLocalData = false;
+          return programs;
+        }
+      } catch (e) {
+        debugPrint('API programs failed, using local data: $e');
       }
-    } catch (_) {
-      // If network fails, gracefully proceed to offline asset cache
     }
+    usedLocalData = true;
+    return _parse(json.decode(await _loader()));
+  }
 
-    // Offline asset fallback
-    final raw = await _loader();
-    final decoded = json.decode(raw);
-    if (decoded is! List) {
+  List<Program> _parse(dynamic list) {
+    if (list is! List) {
       throw const FormatException('Expected a JSON list of programs');
     }
-
-    var list = decoded
-        .map((e) => Program.fromJson(e as Map<String, dynamic>))
+    return list
+        .map((e) => Program.fromJson(Map<String, dynamic>.from(e as Map)))
         .toList();
 
     if (category != null && category != 'All') {
@@ -154,5 +158,35 @@ class ProgramService {
       return FeedbackEntry.fromJson(feedbackData);
     }
     return entry;
+  }
+
+  dynamic _extractList(dynamic data) {
+    if (data is List) return data;
+    if (data is Map) {
+      for (final key in const ['programs', 'data', 'items', 'results']) {
+        if (data[key] is List) return data[key];
+      }
+    }
+    throw const FormatException('Unexpected programs response');
+  }
+
+  /// Sends a registration to the backend (does nothing in demo mode).
+  Future<void> submitRegistration(String programId) async {
+    final api = _api;
+    if (!ApiConfig.useApi || api == null) return;
+    await api.post(ApiConfig.registrationsPath, {'programId': programId});
+  }
+
+  /// Sends feedback to the backend (does nothing in demo mode).
+  Future<void> submitFeedback(FeedbackEntry entry) async {
+    final api = _api;
+    if (!ApiConfig.useApi || api == null) return;
+    await api.post(ApiConfig.feedbackPath, {
+      'programId': entry.programId,
+      'rating': entry.rating,
+      'category': entry.category,
+      'email': entry.email,
+      'comment': entry.comment,
+    });
   }
 }

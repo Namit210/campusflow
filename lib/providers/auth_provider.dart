@@ -1,135 +1,104 @@
 import 'package:flutter/material.dart';
 
-import '../models/user.dart';
 import '../services/api_client.dart';
 import '../services/auth_service.dart';
+import '../services/session_storage.dart';
 
+/// Login state for the whole app.
 class AuthProvider extends ChangeNotifier {
-  final AuthService _authService;
+  final AuthService _service;
+  final SessionStorage _storage;
+  final ApiClient? _client;
 
-  User? _currentUser;
-  String? _token;
-  bool _isLoading = false;
+  AuthUser? _user;
+  bool _initializing = true;
+  bool _busy = false;
   String? _error;
+  bool _disposed = false;
 
-  AuthProvider({AuthService? authService})
-      : _authService = authService ?? AuthService();
+  /// Completes when the saved session (if any) has been loaded.
+  late final Future<void> ready;
 
-  User? get user => _currentUser;
-  String? get token => _token;
-  bool get isAuthenticated => _token != null && _currentUser != null;
-  bool get isLoading => _isLoading;
+  AuthProvider({
+    required AuthService service,
+    SessionStorage? storage,
+    ApiClient? client,
+  })  : _service = service,
+        _storage = storage ?? MemorySessionStorage(),
+        _client = client {
+    ready = _restore();
+  }
+
+  AuthUser? get user => _user;
+  bool get isLoggedIn => _user != null;
+  bool get isInitializing => _initializing;
+  bool get isBusy => _busy;
   String? get error => _error;
 
-  void clearError() {
-    _error = null;
-    notifyListeners();
-  }
-
-  /// Authenticate with email & password.
-  Future<bool> login({
-    required String email,
-    required String password,
-  }) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
-    try {
-      final result = await _authService.login(email: email, password: password);
-      _currentUser = result['user'] as User;
-      _token = result['token'] as String;
-      _isLoading = false;
-      notifyListeners();
-      return true;
-    } on ApiException catch (e) {
-      _error = e.message;
-      _isLoading = false;
-      notifyListeners();
-      return false;
-    } catch (_) {
-      _error = 'Unable to connect to server. Please check your network.';
-      _isLoading = false;
-      notifyListeners();
-      return false;
+  Future<void> _restore() async {
+    final saved = await _storage.read();
+    if (saved != null) {
+      _user = AuthUser(name: saved.name, email: saved.email);
+      _client?.token = saved.token;
     }
+    _initializing = false;
+    _safeNotify();
   }
 
-  /// Create a new account with name, email, and password.
-  Future<bool> signup({
-    required String name,
-    required String email,
-    required String password,
-  }) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
+  Future<bool> login(String email, String password) =>
+      _run(() => _service.login(email, password));
 
+  Future<bool> signup(String name, String email, String password) =>
+      _run(() => _service.signup(name, email, password));
+
+  Future<bool> _run(Future<AuthResult> Function() action) async {
+    _busy = true;
+    _error = null;
+    _safeNotify();
     try {
-      final result = await _authService.signup(
-        name: name,
-        email: email,
-        password: password,
+      final result = await action();
+      _user = result.user;
+      _client?.token = result.token;
+      await _storage.save(
+        token: result.token,
+        name: result.user.name,
+        email: result.user.email,
       );
-      _currentUser = result['user'] as User;
-      _token = result['token'] as String?;
-      _isLoading = false;
-      notifyListeners();
+      _busy = false;
+      _safeNotify();
       return true;
     } on ApiException catch (e) {
       _error = e.message;
-      _isLoading = false;
-      notifyListeners();
-      return false;
     } catch (_) {
-      _error = 'Unable to connect to server. Please check your network.';
-      _isLoading = false;
-      notifyListeners();
-      return false;
+      _error = 'Something went wrong. Please try again.';
     }
+    _busy = false;
+    _safeNotify();
+    return false;
   }
 
-  /// Fetch user profile from the server using the current session.
-  Future<void> loadProfile() async {
-    if (_token == null) return;
-    try {
-      _currentUser = await _authService.getMe();
-      notifyListeners();
-    } catch (_) {
-      // Session may have expired
-    }
-  }
-
-  /// Update the current user profile.
-  Future<bool> updateProfile({String? name, String? email}) async {
-    _isLoading = true;
+  Future<void> logout() async {
+    _user = null;
     _error = null;
-    notifyListeners();
+    _client?.token = null;
+    await _storage.clear();
+    _safeNotify();
+  }
 
-    try {
-      _currentUser = await _authService.updateMe(name: name, email: email);
-      _isLoading = false;
-      notifyListeners();
-      return true;
-    } on ApiException catch (e) {
-      _error = e.message;
-      _isLoading = false;
-      notifyListeners();
-      return false;
-    } catch (_) {
-      _error = 'Failed to update profile';
-      _isLoading = false;
-      notifyListeners();
-      return false;
+  void clearError() {
+    if (_error != null) {
+      _error = null;
+      _safeNotify();
     }
   }
 
-  /// Log out and clear stored session.
-  void logout() {
-    _authService.logout();
-    _currentUser = null;
-    _token = null;
-    _error = null;
-    notifyListeners();
+  void _safeNotify() {
+    if (!_disposed) notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
   }
 }

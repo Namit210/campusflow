@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/program.dart';
+import '../utils/context_colors.dart';
 import '../utils/theme.dart';
 import 'notifications_screen.dart';
 
@@ -23,23 +24,28 @@ class RegistrationConfirmationScreen extends StatelessWidget {
                 child: Icon(Icons.check, color: Colors.white, size: 52),
               ),
               const SizedBox(height: 24),
-              const Text('Registration confirmed',
-                  style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.navy)),
+              Text(
+                'Registration confirmed',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  color: context.textPrimary,
+                ),
+              ),
               const SizedBox(height: 8),
-              Text("You're all set for ${program.title}.",
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: AppColors.muted)),
+              Text(
+                "You're all set for ${program.title}.",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: context.textMuted),
+              ),
               const SizedBox(height: 24),
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: context.surface,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: context.borderColor),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

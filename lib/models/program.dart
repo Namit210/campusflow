@@ -74,6 +74,18 @@ class Program {
     'spa': Icons.spa_outlined,
   };
 
+  static const Map<String, IconData> _categoryIcons = {
+    'Workshop': Icons.lightbulb_outline,
+    'Seminar': Icons.rocket_launch_outlined,
+    'Career': Icons.work_outline,
+  };
+
+  static const Map<String, Color> _categoryColors = {
+    'Workshop': Color(0xFFCF491D),
+    'Seminar': Color(0xFF7C3AED),
+    'Career': Color(0xFF14B8A6),
+  };
+
   static Color _parseColor(String? hex) {
     if (hex == null || !hex.startsWith('#') || hex.length != 7) {
       return const Color(0xFF4F46E5);
@@ -92,17 +104,17 @@ class Program {
         (json[key] as List<dynamic>? ?? const []).map((e) => e.toString()).toList();
 
     return Program(
-      id: str('id'),
-      title: str('title'),
+      id: str('id', str('_id')),
+      title: str('title', str('name')),
       tagline: str('tagline'),
-      imageUrl: str('imageUrl'),
+      imageUrl: str('imageUrl', str('image')),
       category: str('category', 'Workshop'),
-      date: str('date'),
+      date: str('date', str('startDate')),
       time: str('time'),
       location: str('location'),
       capacity: integer('capacity'),
-      registered: integer('registered'),
-      about: str('about'),
+      registered: integer('registered', integer('registeredCount')),
+      about: str('about', str('description')),
       learnPoints: list('learnPoints'),
       whatYouWillDo: list('whatYouWillDo'),
       recommendation: str('recommendation'),
@@ -116,8 +128,13 @@ class Program {
       endDate: str('endDate'),
       completionRewards: list('completionRewards'),
       eligibility: list('eligibility'),
-      icon: _icons[str('icon')] ?? Icons.school_outlined,
-      color: _parseColor(json['color'] as String?),
+      icon: _icons[str('icon')] ??
+          _categoryIcons[str('category', 'Workshop')] ??
+          Icons.school_outlined,
+      color: json['color'] is String
+          ? _parseColor(json['color'] as String)
+          : (_categoryColors[str('category', 'Workshop')] ??
+              const Color(0xFF4F46E5)),
       progress: integer('progress'),
       institution: str('institution', 'CampusFlow'),
       institutionShort: str('institutionShort', 'CF'),

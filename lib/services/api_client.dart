@@ -1,188 +1,71 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
-/// Custom exception thrown by ApiClient when network or HTTP error occurs.
-class ApiException implements Exception {
-  final int statusCode;
-  final String message;
-  final dynamic data;
+import '../config/api_config.dart';
 
-  const ApiException({
-    required this.statusCode,
-    required this.message,
-    this.data,
-  });
+class ApiException implements Exception {
+  final String message;
+  final int? statusCode;
+  const ApiException(this.message, [this.statusCode]);
 
   @override
-  String toString() => 'ApiException($statusCode): $message';
+  String toString() => message;
 }
 
-/// Centralized HTTP client managing baseUrl, token header injection,
-/// timeouts, and error handling.
+/// Small wrapper around `http` that adds JSON headers, the login token,
+/// a timeout and friendly error messages.
 class ApiClient {
-  static final ApiClient instance = ApiClient._internal();
-  factory ApiClient() => instance;
-  ApiClient._internal();
+  final String baseUrl;
+  final http.Client _http;
+  String? token;
 
-  /// Production base URL deployed on Render.
-  static const String productionBaseUrl =
-      'https://campusflow-nq50.onrender.com';
+  ApiClient({String? baseUrl, http.Client? client})
+      : baseUrl = baseUrl ?? ApiConfig.baseUrl,
+        _http = client ?? http.Client();
 
-  /// Default timeout for HTTP requests (30s to allow for Render service cold starts).
-  static const Duration requestTimeout = Duration(seconds: 30);
+  Uri _uri(String path) => Uri.parse('$baseUrl$path');
 
-  /// Default API base URL pointing to the deployed Render service everywhere.
-  /// Can be overridden at compile-time via `--dart-define=API_BASE_URL=url`.
-  static String get defaultBaseUrl {
-    const fromEnv = String.fromEnvironment('API_BASE_URL');
-    if (fromEnv.isNotEmpty) return fromEnv;
-    return productionBaseUrl;
-  }
+  Map<String, String> get _headers => {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      };
 
-  String _baseUrl = defaultBaseUrl;
-  String? _authToken;
+  Future<dynamic> get(String path) =>
+      _send(() => _http.get(_uri(path), headers: _headers));
 
-  String get baseUrl => _baseUrl;
-  String? get authToken => _authToken;
+  Future<dynamic> post(String path, Map<String, dynamic> body) => _send(
+      () => _http.post(_uri(path), headers: _headers, body: jsonEncode(body)));
 
-  void setBaseUrl(String url) {
-    _baseUrl = url.endsWith('/') ? url.substring(0, url.length - 1) : url;
-  }
-
-  void setAuthToken(String? token) {
-    _authToken = token;
-  }
-
-  Map<String, String> _buildHeaders([Map<String, String>? extra]) {
-    final headers = <String, String>{
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    };
-    if (_authToken != null && _authToken!.isNotEmpty) {
-      headers['Authorization'] = 'Bearer $_authToken';
-    }
-    if (extra != null) {
-      headers.addAll(extra);
-    }
-    return headers;
-  }
-
-  Uri _buildUri(String path, [Map<String, dynamic>? queryParams]) {
-    final cleanPath = path.startsWith('/') ? path : '/$path';
-    final fullUrl = '$_baseUrl$cleanPath';
-    final uri = Uri.parse(fullUrl);
-
-    if (queryParams != null && queryParams.isNotEmpty) {
-      final stringParams = queryParams.map(
-        (key, value) => MapEntry(key, value.toString()),
+  Future<dynamic> _send(Future<http.Response> Function() request) async {
+    try {
+      final res = await request().timeout(ApiConfig.timeout);
+      final dynamic decoded = res.body.isEmpty ? null : jsonDecode(res.body);
+      if (res.statusCode >= 200 && res.statusCode < 300) return decoded;
+      throw ApiException(
+        _messageFrom(decoded) ?? 'Request failed (${res.statusCode}).',
+        res.statusCode,
       );
-      return uri.replace(queryParameters: stringParams);
-    }
-    return uri;
-  }
-
-  /// Sends a GET request
-  Future<dynamic> get(String path, {Map<String, dynamic>? queryParams}) async {
-    try {
-      final uri = _buildUri(path, queryParams);
-      final response = await http
-          .get(uri, headers: _buildHeaders())
-          .timeout(requestTimeout);
-      return _handleResponse(response);
-    } catch (e) {
-      _handleError(e);
+    } on ApiException {
+      rethrow;
+    } on TimeoutException {
+      throw const ApiException(
+          'The server took too long to respond. Please try again.');
+    } on http.ClientException {
+      throw const ApiException(
+          'Cannot reach the server. Check your internet connection.');
+    } on FormatException {
+      throw const ApiException('The server sent an unexpected response.');
     }
   }
 
-  /// Sends a POST request
-  Future<dynamic> post(String path, {dynamic body}) async {
-    try {
-      final uri = _buildUri(path);
-      final encodedBody = body != null ? jsonEncode(body) : null;
-      final response = await http
-          .post(uri, headers: _buildHeaders(), body: encodedBody)
-          .timeout(requestTimeout);
-      return _handleResponse(response);
-    } catch (e) {
-      _handleError(e);
+  static String? _messageFrom(dynamic body) {
+    if (body is Map) {
+      final m = body['message'] ?? body['error'] ?? body['msg'];
+      if (m != null) return m.toString();
     }
-  }
-
-  /// Sends a PUT request
-  Future<dynamic> put(String path, {dynamic body}) async {
-    try {
-      final uri = _buildUri(path);
-      final encodedBody = body != null ? jsonEncode(body) : null;
-      final response = await http
-          .put(uri, headers: _buildHeaders(), body: encodedBody)
-          .timeout(requestTimeout);
-      return _handleResponse(response);
-    } catch (e) {
-      _handleError(e);
-    }
-  }
-
-  /// Sends a PATCH request
-  Future<dynamic> patch(String path, {dynamic body}) async {
-    try {
-      final uri = _buildUri(path);
-      final encodedBody = body != null ? jsonEncode(body) : null;
-      final response = await http
-          .patch(uri, headers: _buildHeaders(), body: encodedBody)
-          .timeout(requestTimeout);
-      return _handleResponse(response);
-    } catch (e) {
-      _handleError(e);
-    }
-  }
-
-  /// Sends a DELETE request
-  Future<dynamic> delete(String path) async {
-    try {
-      final uri = _buildUri(path);
-      final response = await http
-          .delete(uri, headers: _buildHeaders())
-          .timeout(requestTimeout);
-      return _handleResponse(response);
-    } catch (e) {
-      _handleError(e);
-    }
-  }
-
-  dynamic _handleResponse(http.Response response) {
-    dynamic decoded;
-    if (response.body.isNotEmpty) {
-      try {
-        decoded = jsonDecode(response.body);
-      } catch (_) {
-        decoded = response.body;
-      }
-    }
-
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      return decoded;
-    }
-
-    String message = 'Request failed with status ${response.statusCode}';
-    if (decoded is Map && decoded['message'] != null) {
-      message = decoded['message'].toString();
-    }
-
-    throw ApiException(
-      statusCode: response.statusCode,
-      message: message,
-      data: decoded,
-    );
-  }
-
-  Never _handleError(dynamic error) {
-    if (error is ApiException) {
-      throw error;
-    }
-    throw ApiException(
-      statusCode: 0,
-      message: 'Unable to connect to server. Check your network connection.',
-    );
+    return null;
   }
 }

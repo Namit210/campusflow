@@ -1,79 +1,100 @@
-import '../models/user.dart';
+import '../config/api_config.dart';
 import 'api_client.dart';
 
-class AuthService {
-  final ApiClient _api;
+class AuthUser {
+  final String name;
+  final String email;
+  const AuthUser({required this.name, required this.email});
+}
 
-  AuthService({ApiClient? api}) : _api = api ?? ApiClient.instance;
+class AuthResult {
+  final AuthUser user;
+  final String? token;
+  const AuthResult(this.user, this.token);
+}
 
-  /// Register a new account.
-  /// Returns a map with user, token (if provided), and backend message.
-  Future<Map<String, dynamic>> signup({
-    required String name,
-    required String email,
-    required String password,
-  }) async {
-    final response = await _api.post('/auth/signup', body: {
-      'name': name.trim(),
-      'email': email.trim(),
-      'password': password,
-    });
+abstract class AuthService {
+  Future<AuthResult> login(String email, String password);
+  Future<AuthResult> signup(String name, String email, String password);
+}
 
-    final user = User.fromJson(response['user'] as Map<String, dynamic>);
-    final token = response['token']?.toString();
-    final message = response['message']?.toString() ?? 'Account created';
+String _nameFromEmail(String email) {
+  final local = email.split('@').first;
+  if (local.isEmpty) return 'Learner';
+  return local[0].toUpperCase() + local.substring(1);
+}
 
-    if (token != null) {
-      _api.setAuthToken(token);
+/// Demo mode: accepts any valid email and a password of 6+ characters.
+class MockAuthService implements AuthService {
+  final Duration delay;
+  const MockAuthService({this.delay = const Duration(milliseconds: 600)});
+
+  Future<void> _wait() async {
+    if (delay > Duration.zero) await Future.delayed(delay);
+  }
+
+  @override
+  Future<AuthResult> login(String email, String password) async {
+    await _wait();
+    if (!email.contains('@') || password.length < 6) {
+      throw const ApiException('Invalid email or password.');
     }
-
-    return {
-      'user': user,
-      'token': token,
-      'message': message,
-    };
+    return AuthResult(
+        AuthUser(name: _nameFromEmail(email), email: email), 'demo-token');
   }
 
-  /// Log in with email and password.
-  /// Returns authenticated user and JWT token.
-  Future<Map<String, dynamic>> login({
-    required String email,
-    required String password,
-  }) async {
-    final response = await _api.post('/auth/login', body: {
-      'email': email.trim(),
-      'password': password,
-    });
+  @override
+  Future<AuthResult> signup(String name, String email, String password) async {
+    await _wait();
+    if (name.trim().isEmpty || !email.contains('@') || password.length < 6) {
+      throw const ApiException('Please check your details and try again.');
+    }
+    return AuthResult(AuthUser(name: name.trim(), email: email), 'demo-token');
+  }
+}
 
-    final token = response['token']?.toString() ?? '';
-    final user = User.fromJson(response['user'] as Map<String, dynamic>);
+/// Talks to the Node/Express backend.
+class ApiAuthService implements AuthService {
+  final ApiClient _client;
+  ApiAuthService(this._client);
 
-    _api.setAuthToken(token);
-
-    return {
-      'user': user,
-      'token': token,
-    };
+  @override
+  Future<AuthResult> login(String email, String password) async {
+    final data = await _client
+        .post(ApiConfig.loginPath, {'email': email, 'password': password});
+    return _parse(data, email: email);
   }
 
-  /// Fetch the current user profile from the server.
-  Future<User> getMe() async {
-    final response = await _api.get('/auth/me');
-    return User.fromJson(response['user'] as Map<String, dynamic>);
+  @override
+  Future<AuthResult> signup(String name, String email, String password) async {
+    final data = await _client.post(ApiConfig.signupPath,
+        {'name': name, 'email': email, 'password': password});
+    final result = _parse(data, email: email, name: name);
+    // Some backends return only a message after signup: log in to get a token.
+    if (result.token != null) return result;
+    return login(email, password);
   }
 
-  /// Update user profile details.
-  Future<User> updateMe({String? name, String? email}) async {
-    final body = <String, dynamic>{};
-    if (name != null) body['name'] = name.trim();
-    if (email != null) body['email'] = email.trim();
+  Map<String, dynamic> _asMap(dynamic v) =>
+      v is Map ? Map<String, dynamic>.from(v) : <String, dynamic>{};
 
-    final response = await _api.put('/auth/me', body: body);
-    return User.fromJson(response['user'] as Map<String, dynamic>);
-  }
+  AuthResult _parse(dynamic data, {required String email, String? name}) {
+    final root = _asMap(data);
+    final inner = _asMap(root['data']);
+    var userMap = _asMap(root['user']);
+    if (userMap.isEmpty) userMap = _asMap(inner['user']);
+    if (userMap.isEmpty) userMap = inner;
 
-  /// Log out locally by clearing the active token.
-  void logout() {
-    _api.setAuthToken(null);
+    final token =
+        (root['token'] ?? root['accessToken'] ?? inner['token'] ?? inner['accessToken'])
+            ?.toString();
+    final userEmail = (userMap['email'] ?? root['email'] ?? email).toString();
+    var userName =
+        (userMap['name'] ?? userMap['fullName'] ?? root['name'] ?? name)
+            ?.toString();
+    if (userName == null || userName.isEmpty) {
+      userName = _nameFromEmail(userEmail);
+    }
+    return AuthResult(AuthUser(name: userName, email: userEmail), token);
   }
 }

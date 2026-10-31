@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../models/app_notification.dart';
@@ -154,6 +156,23 @@ class ProgramProvider extends ChangeNotifier {
   String _query = '';
 
   List<Program> get allPrograms => _programs;
+
+  /// Programs the learner has registered for.
+  List<Program> get registeredPrograms =>
+      _programs.where((p) => _registeredIds.contains(p.id)).toList();
+
+  /// All programs ordered by how soon they start.
+  List<Program> get upcomingPrograms => List<Program>.of(_programs)
+    ..sort((a, b) => a.startsInDays.compareTo(b.startsInDays));
+
+  int get feedbackCount => _feedback.length;
+
+  /// Resets the search box and category filter.
+  void clearFilters() {
+    _selectedCategory = 'All';
+    _query = '';
+    notifyListeners();
+  }
   String get selectedCategory => _selectedCategory;
 
   List<Program> get filteredPrograms {
@@ -195,15 +214,10 @@ class ProgramProvider extends ChangeNotifier {
 
   Future<bool> addFeedback(FeedbackEntry entry) async {
     _feedback.add(entry);
-    _safeNotify();
-
-    try {
-      await _service.submitFeedback(entry);
-      return true;
-    } catch (_) {
-      // Local addition succeeded; network failure non-blocking
-      return false;
-    }
+    unawaited(_service.submitFeedback(entry).catchError((Object e) {
+      debugPrint('Feedback not synced: $e');
+    }));
+    notifyListeners();
   }
 
   // ---------------------------------------------------------------------
@@ -268,148 +282,23 @@ class ProgramProvider extends ChangeNotifier {
 
   void setQuery(String query) {
     _query = query;
-    _safeNotify();
+    notifyListeners();
   }
 
-  /// Registers user for a program and calls backend API.
-  Future<bool> register(Program p) async {
-    if (isRegistered(p.id) || spotsLeft(p) <= 0) {
-      return false;
-    }
-
-    _registeredIds.add(p.id);
-
-    // Optimistically add to user registrations
-    _userRegistrations.removeWhere((r) => r.programId == p.id);
-    _userRegistrations.insert(
-      0,
-      UserRegistration(
-        id: 'local_${p.id}',
-        programId: p.id,
-        completedModules: const [],
-        progress: 0,
-        status: 'ongoing',
-        registeredAt: DateTime.now(),
-        program: p,
-      ),
-    );
-
-    _notifications.insert(
-      0,
-      AppNotification(
-        id: 'reg_${p.id}',
-        title: 'Event Registration Confirmed',
-        message: 'You are registered for ${p.title} on ${p.date}.',
-        timeAgo: 'Just now',
-        icon: Icons.event_available_outlined,
-      ),
-    );
-    _safeNotify();
-
-    try {
-      final updated = await _service.registerForProgram(p.id);
-      final idx = _programs.indexWhere((item) => item.id == p.id);
-      if (idx != -1) {
-        _programs[idx] = updated;
-      }
-
-      // Re-sync backend notifications and registrations to replace optimistic local IDs
-      try {
-        final freshRegs = await _service.fetchMyRegistrations();
-        if (freshRegs.isNotEmpty) {
-          _userRegistrations
-            ..clear()
-            ..addAll(freshRegs);
-        }
-        await reloadNotifications();
-      } catch (_) {}
-
-      return true;
-    } on ApiException catch (e) {
-      // In Flutter test runner where mock HttpClient automatically returns empty status 400,
-      // preserve local registered state for test execution.
-      if (e.message == 'Request failed with status 400' && e.data == null) {
-        return true;
-      }
-      // Revert if real backend API rejected (e.g. event full or duplicate)
-      _registeredIds.remove(p.id);
-      _userRegistrations.removeWhere((r) => r.programId == p.id);
-      _safeNotify();
-      rethrow;
-    } catch (_) {
-      // Offline fallback: keep local state
-      return true;
-    }
-  }
-
-  /// Cancels registration for a program.
-  Future<bool> unregister(Program p) async {
-    if (!isRegistered(p.id)) return false;
-
-    _registeredIds.remove(p.id);
-    _userRegistrations.removeWhere((r) => r.programId == p.id);
-    _safeNotify();
-
-    try {
-      final updated = await _service.cancelRegistration(p.id);
-      if (updated != null) {
-        final idx = _programs.indexWhere((item) => item.id == p.id);
-        if (idx != -1) {
-          _programs[idx] = updated;
-        }
-      }
-      return true;
-    } catch (_) {
-      return true;
-    }
-  }
-
-  /// Toggles module completion for an enrolled program and updates progress.
-  Future<bool> toggleModule(String programId, int moduleIndex) async {
-    // 1. Find program and total module count
-    final program = _programs.cast<Program?>().firstWhere(
-          (p) => p?.id == programId,
-          orElse: () => null,
-        );
-    final total =
-        (program?.learningPath.length ?? 0) > 0 ? program!.learningPath.length : 1;
-
-    // 2. Optimistic local update
-    final regIndex =
-        _userRegistrations.indexWhere((r) => r.programId == programId);
-    if (regIndex != -1) {
-      final cur = _userRegistrations[regIndex];
-      final modules = List<int>.from(cur.completedModules);
-      if (modules.contains(moduleIndex)) {
-        modules.remove(moduleIndex);
-      } else {
-        modules.add(moduleIndex);
-      }
-      final newProgress =
-          ((modules.length / total) * 100).round().clamp(0, 100);
-      final newStatus = newProgress == 100 ? 'completed' : 'ongoing';
-
-      _userRegistrations[regIndex] = cur.copyWith(
-        completedModules: modules,
-        progress: newProgress,
-        status: newStatus,
-        completedAt: newStatus == 'completed' ? DateTime.now() : null,
-      );
-      _safeNotify();
-    } else {
-      // If user registered offline
-      final modules = [moduleIndex];
-      final newProgress =
-          ((modules.length / total) * 100).round().clamp(0, 100);
-      _userRegistrations.add(
-        UserRegistration(
-          id: 'local_$programId',
-          programId: programId,
-          completedModules: modules,
-          progress: newProgress,
-          status: newProgress == 100 ? 'completed' : 'ongoing',
-          registeredAt: DateTime.now(),
-          program: program,
+  void register(Program p) {
+    if (!isRegistered(p.id) && spotsLeft(p) > 0) {
+      _registeredIds.add(p.id);
+      unawaited(_service.submitRegistration(p.id).catchError((Object e) {
+        debugPrint('Registration not synced: $e');
+      }));
+      _notifications.insert(
+        0,
+        AppNotification(
+          id: 'reg_${p.id}',
+          title: 'Event Registration Confirmed',
+          message: 'You are registered for ${p.title} on ${p.date}.',
+          timeAgo: 'Just now',
+          icon: Icons.event_available_outlined,
         ),
       );
       _safeNotify();
