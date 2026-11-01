@@ -14,18 +14,39 @@ class ApiException implements Exception {
   String toString() => message;
 }
 
-/// Small wrapper around `http` that adds JSON headers, the login token,
-/// a timeout and friendly error messages.
+/// Small wrapper around `http`: JSON headers, login token, timeout and
+/// friendly error messages. Supports GET, POST, PATCH and DELETE.
 class ApiClient {
-  final String baseUrl;
+  /// Default backend address (the deployed Render service).
+  static String get defaultBaseUrl => ApiConfig.baseUrl;
+
+  /// Shared instance used by services and providers.
+  static final ApiClient instance = ApiClient();
+
+  String _baseUrl;
   final http.Client _http;
+  /// Login token sent with every request.
   String? token;
 
   ApiClient({String? baseUrl, http.Client? client})
-      : baseUrl = baseUrl ?? ApiConfig.baseUrl,
+      : _baseUrl = _trimSlash(baseUrl ?? ApiConfig.baseUrl),
         _http = client ?? http.Client();
 
-  Uri _uri(String path) => Uri.parse('$baseUrl$path');
+  static String _trimSlash(String url) =>
+      url.endsWith('/') ? url.substring(0, url.length - 1) : url;
+
+  String get baseUrl => _baseUrl;
+  void setBaseUrl(String url) => _baseUrl = _trimSlash(url);
+
+  String? get authToken => token;
+  void setAuthToken(String? value) => token = value;
+
+  Uri _uri(String path) {
+    var p = path.startsWith('/') ? path : '/$path';
+    final prefix = ApiConfig.apiPrefix;
+    if (prefix.isNotEmpty && !p.startsWith(prefix)) p = '$prefix$p';
+    return Uri.parse('$_baseUrl$p');
+  }
 
   Map<String, String> get _headers => {
         'Content-Type': 'application/json',
@@ -36,8 +57,20 @@ class ApiClient {
   Future<dynamic> get(String path) =>
       _send(() => _http.get(_uri(path), headers: _headers));
 
-  Future<dynamic> post(String path, Map<String, dynamic> body) => _send(
-      () => _http.post(_uri(path), headers: _headers, body: jsonEncode(body)));
+  Future<dynamic> post(String path, {Object? body}) => _send(() => _http.post(
+        _uri(path),
+        headers: _headers,
+        body: body == null ? null : jsonEncode(body),
+      ));
+
+  Future<dynamic> patch(String path, {Object? body}) => _send(() => _http.patch(
+        _uri(path),
+        headers: _headers,
+        body: body == null ? null : jsonEncode(body),
+      ));
+
+  Future<dynamic> delete(String path) =>
+      _send(() => _http.delete(_uri(path), headers: _headers));
 
   Future<dynamic> _send(Future<http.Response> Function() request) async {
     try {
