@@ -74,11 +74,9 @@ class ProgramProvider extends ChangeNotifier {
         _registeredIds
           ..clear()
           ..addAll(regs.map((r) => r.programId));
-      } else {
-        final registered = await _service.fetchMyRegisteredProgramIds();
-        _registeredIds
-          ..clear()
-          ..addAll(registered);
+      } else if (ApiClient.instance.token != null) {
+        _userRegistrations.clear();
+        _registeredIds.clear();
       }
 
       // 3. Refresh notifications
@@ -342,6 +340,14 @@ class ProgramProvider extends ChangeNotifier {
 
       return true;
     } on ApiException catch (e) {
+      if (e.statusCode == 409 ||
+          e.message.toLowerCase().contains('already registered')) {
+        // Backend confirms the user is already registered. Sync and reflect it locally!
+        _registeredIds.add(p.id);
+        _safeNotify();
+        await syncWithBackend();
+        return true;
+      }
       if (e.message.contains('status 400') && e.data == null) {
         return true;
       }
@@ -375,6 +381,13 @@ class ProgramProvider extends ChangeNotifier {
     } catch (_) {
       return true;
     }
+  }
+
+  /// Clears user-specific registrations and notifications on logout.
+  void clearUserData() {
+    _registeredIds.clear();
+    _userRegistrations.clear();
+    _safeNotify();
   }
 
   /// Toggles module completion for an enrolled program and updates progress.

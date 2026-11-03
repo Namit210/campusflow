@@ -92,7 +92,10 @@ class ProfileScreen extends StatelessWidget {
             ),
             icon: const Icon(Icons.logout),
             label: const Text('Log out'),
-            onPressed: () => context.read<AuthProvider>().logout(),
+            onPressed: () {
+              context.read<ProgramProvider>().clearUserData();
+              context.read<AuthProvider>().logout();
+            },
           ),
         ],
       ),

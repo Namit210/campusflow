@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../config/api_config.dart';
 import '../providers/auth_provider.dart';
+import '../providers/program_provider.dart';
 import '../utils/context_colors.dart';
 
 import '../utils/validators.dart';
@@ -32,10 +33,13 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!_formKey.currentState!.validate()) return;
     FocusScope.of(context).unfocus();
     // On success AuthGate shows the Home screen automatically.
-    await context.read<AuthProvider>().login(
+    final ok = await context.read<AuthProvider>().login(
           _emailCtrl.text.trim(),
           _passwordCtrl.text,
         );
+    if (ok && mounted) {
+      await context.read<ProgramProvider>().syncWithBackend();
+    }
   }
 
   @override
