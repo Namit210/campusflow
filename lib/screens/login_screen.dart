@@ -20,7 +20,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   bool _obscure = true;
-  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -60,23 +59,19 @@ class _LoginScreenState extends State<LoginScreen> {
                     Text(
                       'CampusFlow',
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: AppColors.muted),
-                    ),
-                    const SizedBox(height: 36),
-                    const Text(
-                      'Welcome back',
                       style: TextStyle(
-                        fontSize: 30,
+                        fontSize: 28,
                         fontWeight: FontWeight.w800,
                         color: context.textPrimary,
                       ),
                     ),
+                    const SizedBox(height: 4),
                     Text(
                       'Learn · Engage · Grow',
                       textAlign: TextAlign.center,
                       style: TextStyle(color: context.textMuted),
                     ),
-                    const SizedBox(height: 36),
+                    const SizedBox(height: 32),
                     Text(
                       'Welcome back',
                       style: TextStyle(
